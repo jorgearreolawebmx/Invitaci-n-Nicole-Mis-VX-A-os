@@ -1,0 +1,204 @@
+INVITACIÓN DIGITAL · NICOLE ROA BARRAGÁN
+========================================
+
+PRIMERA VERSIÓN VISUAL Y FUNCIONAL
+
+1. Abra index.html en un navegador moderno para revisar la invitación.
+2. La pantalla inicial muestra el video del sobre pausado.
+3. Toque el sello (botón invisible superpuesto) para iniciar el video.
+4. Cuando termina la apertura, aparece el contenido de la invitación.
+5. La invitación está diseñada en una sola columna para desplazamiento vertical en celular.
+
+ARCHIVOS PRINCIPALES
+- index.html: estructura y textos.
+- styles.css: diseño, colores y adaptación móvil.
+- app.js: apertura por toque, cuenta regresiva y galería ampliable.
+- assets/: video, fotografías y recursos gráficos.
+
+DATOS INCLUIDOS
+- Nicole Roa Barragán.
+- Papás: Sheylla Indira Barragán Corona y Héctor Roa Ficache.
+- Padrinos: Anaycari Dorantes Corona y Rafael Abraham Olmos García.
+- Fecha: sábado 21 de noviembre de 2026.
+- Misa: 18:00, Parroquia San Pío X.
+- Recepción: 19:00, Salón Cascadas del Hotel Misión Xalapa.
+- Confirmación: Sheylla Indira Barragán Corona, 228 856 0974.
+- Límite de confirmación: 20 de noviembre de 2026.
+- Regalos: lluvia de sobres.
+
+NOTAS
+- El video de apertura se recortó antes del fundido a negro original, para que termine mostrando el sobre abierto y vacío.
+- El botón sobre el sello es invisible; el video no inicia hasta que el invitado lo toca. Su posición está calculada dentro del mismo marco 9:16 del video para evitar desalineación en móviles y escritorio.
+- Las direcciones de mapas abren búsquedas de Google Maps. Conviene verificar el pin exacto antes de publicar.
+- Los horarios que la familia no proporcionó se muestran sin hora para no inventar información.
+- La galería utiliza las dos fotografías que ya se compartieron como referencia. Se pueden sustituir por las fotografías finales.
+- Esta versión es estática y puede alojarse en GitHub Pages. No incluye todavía panel de administración, enlaces personalizados por familia ni almacenamiento de confirmaciones en una base de datos.
+
+PARA PUBLICAR EN GITHUB PAGES
+Suba el contenido completo de esta carpeta al repositorio, conservando la carpeta assets y sus rutas. Active GitHub Pages desde la configuración del repositorio.
+
+CORRECCIÓN DE ESTA VERSIÓN
+- Se corrigió el área táctil del sello: antes estaba posicionada con respecto a la pantalla completa y podía quedar fuera de lugar según el dispositivo. Ahora está posicionada con respecto al marco vertical exacto del video.
+- Se agregó compatibilidad adicional con eventos táctiles y un mensaje de error más visible si el navegador no puede reproducir el MP4.
+- Se mantiene la reproducción pausada hasta tocar el sello.
+
+
+MEJORA DE TRANSICIÓN
+- El video de apertura ahora está completamente silenciado (se eliminó también la pista de audio).
+- Se acortó la pausa final del sobre abierto.
+- Durante el último segundo aproximado del video aparece un fundido progresivo a blanco.
+- La invitación se prepara debajo del blanco y entra con una animación suave de opacidad y desplazamiento vertical.
+- El sobre se oculta al terminar el fundido; no aparece ninguna tarjeta dentro del sobre.
+
+
+ACTUALIZACIÓN DE PORTADA CON RECURSOS APROBADOS
+- La portada reproduce la composición vertical de referencia: fotografía superior con desvanecido a marfil, logotipo de Nicole, placa de fecha y contador.
+- El logotipo se coloca como PNG transparente independiente.
+- La fecha utiliza la placa gráfica suministrada.
+- El panel de cuenta regresiva usa el PNG sin cifras; los cuatro números y sus etiquetas se superponen como texto HTML y se actualizan cada segundo.
+- Se retiró el bloque de fecha anterior para evitar duplicar la fecha y el contador.
+- Se mantiene la apertura del sobre, el video silenciado y la transición blanca.
+
+
+ACTUALIZACIÓN DE INTERACCIONES
+- La fotografía principal tiene un zoom lento de entrada y salida en bucle (28 segundos), manteniendo el encuadre.
+- Al abrir la invitación aparecen pétalos rosa palo discretos que flotan en bucle por la pantalla. No bloquean los botones ni el desplazamiento.
+- En Confirmación de asistencia, el botón “Sí, asistiré” revela un campo obligatorio para escribir el nombre. Al enviar, abre WhatsApp con el nombre y la confirmación dirigida a Sheylla.
+- El botón “No podré asistir” abre WhatsApp con un mensaje de aviso.
+- Las confirmaciones se envían por WhatsApp; esta versión no guarda una lista central de invitados ni registra respuestas en una base de datos.
+- Para revisar la invitación sin reproducir el sobre, abre index.html?preview=1.
+
+
+ACTUALIZACIÓN DE FONDO Y SCROLLING
+- Se añadió assets/fondo-tela-continuo.jpg como fondo persistente de la invitación.
+- El contenido se desplaza de forma nativa sobre ese fondo; no se bloquea el gesto de scroll del teléfono.
+- Las secciones y tarjetas aparecen con una transición suave al entrar en pantalla (IntersectionObserver).
+- Se mantiene el fondo detrás de todas las secciones, con panel de confirmación azul contenido para conservar contraste.
+- La opción ?preview=1 permite revisar la invitación y el efecto scrolling sin reproducir el sobre.
+
+
+MICROINTERACCIÓN DE UBICACIONES
+- Los botones “VER UBICACIÓN” crecen ligeramente al pasar el cursor en computadora.
+- En móviles, el botón aumenta suavemente de tamaño mientras se presiona.
+- El cambio de color y la pequeña elevación refuerzan la respuesta sin alterar la posición de los demás elementos.
+- Se mantiene el enlace original a Google Maps.
+
+
+CORRECCIÓN DE INTERACCIÓN DE UBICACIONES
+- Ahora cada tarjeta completa (fotografía + datos + rótulo) es un único enlace a su ubicación en Google Maps.
+- Al pasar el cursor, la tarjeta completa se eleva y amplía ligeramente.
+- Al tocarla en celular, aumenta suavemente de tamaño y mantiene una breve respuesta visual después del toque.
+- El rótulo “VER UBICACIÓN” se conserva como indicación visual dentro de la tarjeta; no hay enlaces anidados.
+- La interacción también responde al teclado y respeta la preferencia de movimiento reducido.
+
+ACTUALIZACIÓN DE TARJETAS DE UBICACIÓN
+------------------------------------
+- Se sustituyeron las tarjetas blancas por las dos placas gráficas PNG aprobadas.
+- assets/placa-iglesia.png: placa con fotografía de la Parroquia San Pío X.
+- assets/placa-salon.png: placa con fotografía del Salón Cascadas / Hotel Misión Xalapa.
+- Los nombres, horarios, direcciones y rótulos se superponen como texto HTML, no están impresos en la imagen.
+- Cada placa completa es un enlace a su ubicación en Google Maps.
+- En computadora, la placa crece y se eleva suavemente al pasar el cursor.
+- En pantalla táctil, la placa da una respuesta de escala al presionarla.
+
+
+GENERADOR DE ENLACES PERSONALIZADOS POR FAMILIA
+------------------------------------------------
+- Al final de la invitación aparece el acceso discreto “LINK PERSONALIZADO”.
+- Contraseña de acceso configurada: 12345.
+- Después de ingresar, escribe el nombre de una familia y pulsa “GENERAR LINK”.
+- El sistema crea una URL con el parámetro ?familia=NombreDeLaFamilia y permite copiarla.
+- Al abrir el enlace, la invitación muestra el saludo personalizado con el nombre de esa familia.
+- La página y los enlaces son estáticos: no requiere Google Apps Script, Supabase ni base de datos.
+- Si abres la invitación desde su URL publicada (GitHub Pages o dominio HTTPS propio), los enlaces se generan automáticamente con esa dirección.
+- Si abres index.html desde file:// en tu computadora, el generador te pedirá la URL HTTPS pública de GitHub Pages. Pégala una vez (por ejemplo, https://usuario.github.io/repositorio/) y se recordará en ese navegador.
+- Nunca se debe compartir una dirección file:///C:/... porque solo existe en la computadora donde se abrió el archivo.
+- Limitaciones: los enlaces no se guardan en un registro central, no hay panel de listado y las confirmaciones de asistencia siguen enviándose por WhatsApp sin almacenarse en una base de datos.
+- Seguridad: la contraseña 12345 está implementada en el JavaScript del navegador. Es una barrera visual básica, no un sistema de autenticación seguro; alguien que inspeccione el código puede encontrarla. No utilizar para información confidencial.
+
+
+ACTUALIZACIÓN: LLUVIA DE SOBRES ANIMADA
+----------------------------------------
+- Se añadieron assets/urna-lluvia-sobres.png y assets/sobre-lluvia.png.
+- Al entrar la urna en pantalla durante el desplazamiento, varios sobres caen en secuencia desde arriba y se reducen hasta entrar visualmente por la ranura.
+- La urna vibra suavemente durante unos segundos al activarse la animación.
+- Se añadió assets/lluvia-sobres-efecto.mp3: fragmento de 4.6 segundos del audio proporcionado, con salida gradual.
+- El primer toque para abrir el sobre prepara el audio en silencio para facilitar su reproducción posterior al llegar a la sección.
+- Algunos navegadores móviles pueden bloquear el audio automático iniciado por scroll; si sucede, aparece el botón discreto “Reproducir efecto de sonido”.
+- La animación y el sonido se ejecutan una sola vez por carga de la invitación.
+- Se respeta la preferencia del dispositivo de reducir movimiento.
+- Para probar directamente el contenido, abre index.html?preview=1 y desplázate hasta “Lluvia de sobres”. En modo preview, si el navegador bloquea el sonido, toca el botón de reproducción que aparece.
+
+- La sección "Programa del evento" ahora usa una línea de tiempo vertical con diez medallones PNG separados e independientes. El icono de brindis se reutiliza para la recepción en el salón y para el brindis.
+- Los horarios aparecen en cápsulas doradas y se despliegan progresivamente junto con cada actividad al entrar en pantalla. La animación respeta la preferencia de movimiento reducido del dispositivo.
+- Los iconos individuales están en assets/program-icons/ y tienen márgenes transparentes propios para evitar que se mezclen con el icono vecino.
+
+
+ACTUALIZACIÓN DE GALERÍA Y MÚSICA DE FONDO
+- La galería ahora es un carrusel infinito con avance automático, flechas, puntos y gesto de deslizar en móvil.
+- Cada fotografía tiene un zoom-in lento mientras está activa; al tocarla se abre ampliada.
+- Se retiró el fondo floral de la sección de galería para dejar una superficie marfil limpia y facilitar la lectura.
+- Se añadió la línea de apellido ROA BARRAGÁN bajo el logotipo de Nicole para mostrar el nombre completo.
+- Se incorporó el archivo one-last-time.mp3 como música de fondo en bucle. El primer toque en el sello desbloquea la reproducción; la música entra suavemente cuando se revela la invitación.
+- El botón flotante MÚSICA permite apagarla y volverla a activar. El video de apertura permanece silenciado.
+- La animación del sobre ahora se reproduce al 1.18x para abrir ligeramente más rápido.
+- En algunos navegadores móviles el audio requiere interacción; el botón permite activarlo manualmente.
+
+
+AJUSTE DE APERTURA Y RESPLANDOR DESDE EL SOBRE
+----------------------------------------------
+- El video de apertura se recortó para terminar en el fotograma donde el sobre ya está abierto y vacío, con los pliegues laterales visibles. No continúa hasta una apertura mayor.
+- El MP4 conserva formato vertical 9:16, está silenciado y termina aproximadamente a los 4.04 segundos de reproducción normal (la página mantiene la velocidad 1.18x).
+- Se eliminó el fundido blanco anticipado durante el último segundo: el sobre permanece visible mientras completa la apertura.
+- Cuando el video llega al fotograma final, una luz blanca cálida nace desde el centro de la cavidad del sobre, se expande y llena progresivamente el encuadre.
+- Una vez que el resplandor cubre la pantalla, aparece la página web con su transición suave. La música de fondo entra junto con la invitación.
+- Se conserva el botón invisible sobre el sello, el generador de enlaces familiares y el resto de las secciones y animaciones.
+
+
+ACTUALIZACION DE ESTA VERSION:
+- El sobre ahora muestra el texto INVITACION · MIS XV AÑOS y NICOLE ROA BARRAGAN.
+- La indicacion TOCA EL SELLO PARA ABRIR aparece debajo del sello.
+- La transicion ya no usa resplandor blanco; la invitacion aparece con un fundido limpio.
+- La galeria conserva zoom continuo en miniaturas y fotos ampliadas.
+- En el visor ampliado se puede pasar de foto con flechas, teclado o deslizando en celular.
+- Las miniaturas llenan su marco con recorte fotografico; las fotos completas se muestran en el visor.
+
+
+ACTUALIZACION DE DISEÑO: PLACAS, GALERIA XV Y CONFIRMACION
+--------------------------------------------------------
+- El panel del Programa del evento ahora usa una placa azul marino ornamental con doble borde dorado champagne, más cercana al lenguaje visual de las tarjetas de ceremonia y recepción. Se conservan la línea de tiempo, los medallones y el despliegue progresivo de horarios y actividades.
+- La galería existente se identifica como “Galería de mi infancia” para distinguirla de la futura galería de las fotografías de los XV años.
+- Se agregó, antes de la confirmación, una sección “Galería de mis XV años” con sello visual “PRÓXIMAMENTE”, mensaje de próxima publicación y contador dinámico hasta el inicio de la misa: sábado 21 de noviembre de 2026 a las 18:00 (hora local de Xalapa, UTC-6).
+- Después del inicio de la celebración, el contador se detiene en cero y el mensaje cambia para indicar que la galería estará disponible próximamente.
+- La confirmación de asistencia ahora está contenida en una placa ornamental azul marino con doble borde champagne, a juego con el programa y las tarjetas de ubicación. Se conservan los botones de respuesta, el formulario de nombre y el envío por WhatsApp.
+- Se añadió assets/ornate-navy-plaque.svg como marco vectorial reutilizable para las placas del programa, la sección “Próximamente” y la confirmación. Los textos permanecen como HTML para conservar legibilidad y adaptación móvil.
+- Las tres secciones siguen siendo parte de una sola página vertical y mantienen el fondo continuo y las animaciones de aparición al desplazarse.
+- Para revisar sin abrir el sobre, usa index.html?preview=1 y desplázate hasta Programa del evento, Galería de mis XV años y Confirma tu asistencia.
+
+ACTUALIZACIÓN: CIERRE, FOTOS FAMILIARES Y LEGIBILIDAD
+----------------------------------------------------
+- Se retiraron los arreglos florales decorativos estáticos de la sección familiar y del cierre; se mantienen los pétalos animados del sitio.
+- En “Mis papás” y “Mis padrinos” se añadieron cuatro espacios circulares de fotografía, uno para cada integrante. Los círculos están marcados “FOTO” como guía temporal y pueden reemplazarse por retratos cuando la familia los proporcione.
+- Se aumentó el tamaño y el interlineado de nombres, encabezados, descripciones y etiquetas pequeñas para mejorar la lectura en móvil.
+- El cierre utiliza el logotipo PNG oficial de Nicole (assets/logo-nicole.png) en lugar del nombre escrito con texto.
+- El fondo del cierre ahora utiliza una composición propia de la tela marfil, gasas rosa palo y laterales azul marino, con una iluminación central suave para que los laterales se distingan más sin perjudicar la lectura.
+
+
+ACTUALIZACIÓN: SESIÓN PRE XV, PÉTALOS Y CONTROL DE ASISTENCIA
+-----------------------------------------------------------
+- La sección “Galería de mis XV años” ahora se presenta como “Sesión Pre XV” y está reservada para 15 fotografías de esa sesión. El texto “Después de la celebración” fue retirado.
+- La sección muestra “15 fotografías de mi sesión” y “PRÓXIMAMENTE”, además de conservar la cuenta regresiva para el inicio de los XV años.
+- Se separó el PNG proporcionado en dos recursos fotográficos: assets/petalo-rosa.png y assets/petalo-marfil.png. La lluvia mezcla ambos modelos con tamaños más grandes, rotación y desplazamiento suave.
+- Se redujo la separación visual entre la confirmación y el cierre, para que el fondo de tela continúe sin una franja vacía.
+- En la confirmación, al elegir “Sí, asistiré”, únicamente se pide el nombre completo. El mensaje de WhatsApp confirma la asistencia sin preguntar ni incluir acompañantes. El panel administrativo cuenta una persona por cada respuesta afirmativa.
+- El acceso “LINK PERSONALIZADO” conserva la clave 12345. Después del acceso aparece “Resumen de asistencia”, con conteo de respuestas, total de asistentes y respuestas de no asistencia.
+- El panel permite registrar manualmente cada respuesta recibida, eliminar registros y descargar la lista con resumen en un archivo TXT. Los datos se conservan mediante localStorage en el navegador de administración.
+- IMPORTANTE: el envío por WhatsApp no notifica automáticamente a la página ni a GitHub Pages. Por eso, para que el resumen refleje los mensajes recibidos, Sheylla debe capturar cada respuesta en el panel. Los registros no se sincronizan entre teléfonos o computadoras. Para sincronización automática entre dispositivos sería necesario un servicio de almacenamiento compartido (por ejemplo, Google Apps Script/Sheets o una base de datos).
+- Recomendación: entrar al panel administrativo desde el mismo navegador/computadora para conservar el registro y descargar periódicamente el TXT como respaldo.
+
+
+ACTUALIZACION DE INTERFAZ
+- El control de musica ahora es un boton circular de solo icono, fijo en la esquina inferior derecha durante la invitacion.
+- Las animaciones de revelado se repiten al entrar en pantalla, tanto al bajar como al subir, porque el observador reinicia el estado al salir del area visible.
+
+Actualización de galería Pre Quince: la placa dorada “PRÓXIMAMENTE” aparece como encabezado independiente entre el título y el carrusel. Los 15 espacios de fotografía quedan limpios y sin una banda superpuesta en medio.

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#172d4d"/>
+      <stop offset="0.48" stop-color="#0c1d37"/>
+      <stop offset="1" stop-color="#08172e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.95" y2="1">
+      <stop offset="0" stop-color="#f2d79c"/>
+      <stop offset="0.28" stop-color="#b9843f"/>
+      <stop offset="0.52" stop-color="#f5dba4"/>
+      <stop offset="0.78" stop-color="#b78645"/>
+      <stop offset="1" stop-color="#f1d49a"/>
+    </linearGradient>
+    <linearGradient id="innerGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6dfb0" stop-opacity=".58"/>
+      <stop offset=".5" stop-color="#d2aa6c" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#f6dfb0" stop-opacity=".48"/>
+    </linearGradient>
+    <filter id="shadow" x="-12%" y="-8%" width="124%" height="118%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9" result="blur"/>
+      <feOffset dy="8" result="offset"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".30"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="8"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="table" tableValues="0 .11"/></feComponentTransfer>
+    </filter>
+    <clipPath id="plaqueClip">
+      <path d="M126 10 C82 10 66 25 54 55 C24 61 9 86 9 124 L9 876 C9 914 24 939 54 945 C66 975 82 990 126 990 L674 990 C718 990 734 975 746 945 C776 939 791 914 791 876 L791 124 C791 86 776 61 746 55 C734 25 718 10 674 10 Z"/>
+    </clipPath>
+  </defs>
+  <path d="M126 10 C82 10 66 25 54 55 C24 61 9 86 9 124 L9 876 C9 914 24 939 54 945 C66 975 82 990 126 990 L674 990 C718 990 734 975 746 945 C776 939 791 914 791 876 L791 124 C791 86 776 61 746 55 C734 25 718 10 674 10 Z" fill="url(#navy)" stroke="url(#gold)" stroke-width="8" filter="url(#shadow)"/>
+  <g clip-path="url(#plaqueClip)">
+    <rect x="0" y="0" width="800" height="1000" fill="#fff" opacity=".13" filter="url(#grain)"/>
+    <ellipse cx="400" cy="-25" rx="500" ry="270" fill="#8da6c5" opacity=".07"/>
+  </g>
+  <path d="M132 25 C94 25 81 39 69 68 C42 73 26 95 26 127 L26 873 C26 905 42 927 69 932 C81 961 94 975 132 975 L668 975 C706 975 719 961 731 932 C758 927 774 905 774 873 L774 127 C774 95 758 73 731 68 C719 39 706 25 668 25 Z" fill="none" stroke="url(#innerGold)" stroke-width="2.2"/>
+  <path d="M145 34 C111 34 99 47 88 73 M655 34 C689 34 701 47 712 73 M88 927 C99 953 111 966 145 966 M712 927 C701 953 689 966 655 966" fill="none" stroke="#f6dfb0" stroke-opacity=".16" stroke-width="1.2"/>
+</svg>
