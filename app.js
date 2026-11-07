@@ -446,7 +446,7 @@
       const params = new URLSearchParams(window.location.search);
       const family = params.get('familia');
       const invitee = params.get('invitado');
-      const familyLine = family ? `\nInvitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? `\nPase personal para: ${invitee}.` : '');
+      const familyLine = family ? `\nInvitación dirigida a: ${family}.` : (params.get('pase') === 'personal' ? `\nPase personal para jóvenes: 1 persona.` : '');
       const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
       const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? `\nPases asignados: ${assignedPasses}.` : '';
       const message = `Hola Sheylla, soy ${guestName}.${familyLine}${passesLine} Confirmo mi asistencia a los XV años de Nicole Roa Barragán, el 21 de noviembre de 2026. ¡Muchas gracias por la invitación!`;
@@ -466,7 +466,7 @@
       const params = new URLSearchParams(window.location.search);
       const family = params.get('familia');
       const invitee = params.get('invitado');
-      const familyLine = family ? ` Invitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? ` Pase personal para: ${invitee}.` : '');
+      const familyLine = family ? ` Invitación dirigida a: ${family}.` : (params.get('pase') === 'personal' ? ` Pase personal para jóvenes: 1 persona.` : '');
       const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
       const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? ` Pases asignados: ${assignedPasses}.` : '';
       const message = `Hola Sheylla.${familyLine}${passesLine} Muchas gracias por la invitación a los XV años de Nicole. Lamentablemente no podré asistir.`;
@@ -930,6 +930,7 @@
   const familyGreetingName = document.getElementById('familyGreetingName');
   const familyGreetingCopy = document.getElementById('familyGreetingCopy');
   const personalPassBadge = document.getElementById('personalPassBadge');
+  const personalPassSingle = document.getElementById('personalPassSingle');
   const familyPassCountBadge = document.getElementById('familyPassCountBadge');
   const familyPassCountValue = document.getElementById('familyPassCountValue');
   const cleanInvitationName = (value) => String(value || '')
@@ -940,21 +941,29 @@
     .slice(0, 70);
 
   if (rawPassType === 'personal' && familyGreeting && familyGreetingName) {
-    const inviteeName = cleanInvitationName(rawInviteeName);
-    if (familyGreetingEyebrow) familyGreetingEyebrow.textContent = 'INVITACIÓN PERSONAL';
-    familyGreetingName.textContent = inviteeName || 'Pase personal';
+    // Pase general para los jóvenes: no se personaliza con nombre y siempre representa una persona.
+    if (familyGreetingEyebrow) familyGreetingEyebrow.textContent = 'INVITACIÓN ESPECIAL';
+    familyGreetingName.textContent = '';
+    familyGreetingName.hidden = true;
     if (personalPassBadge) personalPassBadge.hidden = false;
-    if (familyGreetingCopy) familyGreetingCopy.textContent = 'Este pase es personal. Nos encantará compartir contigo esta celebración tan especial.';
+    if (personalPassSingle) personalPassSingle.hidden = false;
+    if (familyPassCountBadge) familyPassCountBadge.hidden = true;
+    if (familyGreetingCopy) familyGreetingCopy.textContent = 'Nos encantará que formes parte de esta celebración tan especial.';
     familyGreeting.classList.add('is-personal-pass');
     familyGreeting.hidden = false;
-    document.title = `${inviteeName ? inviteeName + ' · ' : ''}Pase personal · XV años de Nicole`;
+    document.title = 'Pase personal · XV años de Nicole';
   } else if (rawFamilyName && familyGreeting && familyGreetingName) {
     const safeFamilyName = cleanInvitationName(rawFamilyName);
     if (safeFamilyName) {
       familyGreetingName.textContent = safeFamilyName;
+      familyGreetingName.hidden = false;
+      if (personalPassBadge) personalPassBadge.hidden = true;
+      if (personalPassSingle) personalPassSingle.hidden = true;
       if (Number.isInteger(rawPassCount) && rawPassCount > 0 && rawPassCount <= 30 && familyPassCountBadge && familyPassCountValue) {
         familyPassCountValue.textContent = String(rawPassCount);
         familyPassCountBadge.hidden = false;
+      } else if (familyPassCountBadge) {
+        familyPassCountBadge.hidden = true;
       }
       familyGreeting.hidden = false;
       document.title = `${safeFamilyName} · Invitación a los XV años de Nicole`;
@@ -976,6 +985,7 @@
   const familyNameInput = document.getElementById('familyNameInput');
   const invitationLinkType = document.getElementById('invitationLinkType');
   const familyNameLabel = document.getElementById('familyNameLabel');
+  const familyPersonalModeNote = document.getElementById('familyPersonalModeNote');
   const familyGeneratedLinkLabel = document.getElementById('familyGeneratedLinkLabel');
   const familyLinkResult = document.getElementById('familyLinkResult');
   const familyGeneratedLink = document.getElementById('familyGeneratedLink');
@@ -1061,7 +1071,8 @@
     url.searchParams.delete('pases');
     if (record.type === 'personal') {
       url.searchParams.set('pase', 'personal');
-      url.searchParams.set('invitado', record.name);
+      url.searchParams.set('pases', '1');
+      // No se agrega parámetro de nombre: es un enlace general para jóvenes.
     } else {
       url.searchParams.set('familia', record.name);
       const count = Number.parseInt(record.passes, 10);
@@ -1227,12 +1238,21 @@
 
   function updateInvitationLinkTypeUI() {
     const personalMode = invitationLinkType?.value === 'personal';
-    if (familyNameLabel) familyNameLabel.textContent = personalMode ? 'Nombre del invitado' : 'Nombre de la familia';
-    if (familyNameInput) familyNameInput.placeholder = personalMode ? 'Ej. Jorge Isaac Arreola' : 'Ej. Familia Arreola';
-    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace de pase personal' : 'Enlace de invitación familiar';
+    if (familyNameLabel) familyNameLabel.hidden = personalMode;
+    if (familyNameInput) {
+      familyNameInput.hidden = personalMode;
+      familyNameInput.required = !personalMode;
+      familyNameInput.disabled = personalMode;
+      familyNameInput.placeholder = 'Ej. Familia Arreola';
+      if (personalMode) familyNameInput.value = '';
+    }
+    if (familyPersonalModeNote) familyPersonalModeNote.hidden = !personalMode;
+    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace general de pase personal · 1 pase' : 'Enlace de invitación familiar';
     if (familyPassCountWrap) familyPassCountWrap.hidden = personalMode;
     const title = familyGeneratorStep?.querySelector('.family-admin-create-title');
-    if (title) title.textContent = personalMode ? 'Crear pase personal' : 'Agregar otra invitación familiar';
+    if (title) title.textContent = personalMode ? 'Crear pase general para jóvenes' : 'Agregar otra invitación familiar';
+    const submitButton = familyLinkForm?.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.textContent = personalMode ? 'GENERAR PASE PARA JÓVENES' : 'GENERAR LINK';
   }
   invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI);
   updateInvitationLinkTypeUI();
@@ -1240,21 +1260,21 @@
   if (familyLinkForm && familyNameInput && familyGeneratedLink && familyLinkResult) {
     familyLinkForm.addEventListener('submit', (event) => {
       event.preventDefault();
-      const name = familyNameInput.value
+      const type = invitationLinkType?.value === 'personal' ? 'personal' : 'family';
+      const name = type === 'personal' ? '' : familyNameInput.value
         .replace(/[<>]/g, '')
         .replace(/[\u0000-\u001F\u007F]/g, '')
         .replace(/\s+/g, ' ')
         .trim()
         .slice(0, 70);
-      if (!name) { familyNameInput.focus(); return; }
+      if (type === 'family' && !name) { familyNameInput.focus(); return; }
 
-      const type = invitationLinkType?.value === 'personal' ? 'personal' : 'family';
-      const passCount = type === 'family' ? Number.parseInt(familyPassCountInput?.value || '', 10) : NaN;
+      const passCount = type === 'family' ? Number.parseInt(familyPassCountInput?.value || '', 10) : 1;
       if (type === 'family' && familyPassCountInput?.value && (!Number.isInteger(passCount) || passCount < 1 || passCount > 30)) {
         familyPassCountInput.focus();
         return;
       }
-      const record = { name, type, passes: Number.isInteger(passCount) ? passCount : undefined };
+      const record = { name: name || undefined, type, passes: type === 'personal' ? 1 : (Number.isInteger(passCount) ? passCount : undefined) };
       const personalizedUrl = buildInvitationLink(record);
       if (!personalizedUrl) {
         if (familyPublicUrlError) {
@@ -1271,7 +1291,9 @@
         saveExtraFamilyLink({ name, passes: record.passes || null });
         renderRegisteredFamilies();
       }
-      if (familyCopyFeedback) familyCopyFeedback.textContent = 'Enlace público generado. Ya puedes copiarlo y compartirlo por WhatsApp.';
+      if (familyCopyFeedback) familyCopyFeedback.textContent = type === 'personal'
+        ? 'Enlace general generado: Pase personal para jóvenes · 1 pase · sin nombre.'
+        : 'Enlace público generado. Ya puedes copiarlo y compartirlo por WhatsApp.';
     });
   }
 
@@ -1290,7 +1312,7 @@
   familyNewLink?.addEventListener('click', () => {
     if (familyNameInput) {
       familyNameInput.value = '';
-      familyNameInput.focus();
+      if (!familyNameInput.hidden) familyNameInput.focus();
     }
     if (familyPassCountInput) familyPassCountInput.value = '';
     if (familyLinkResult) familyLinkResult.hidden = true;
@@ -1309,9 +1331,16 @@
   const attendanceGuests = document.getElementById('attendanceGuests');
   const attendanceDeclines = document.getElementById('attendanceDeclines');
   const attendanceListCount = document.getElementById('attendanceListCount');
-  const attendanceExport = document.getElementById('attendanceExportTxt');
+  const attendanceRefresh = document.getElementById('attendanceRefresh');
+  const attendanceExportPdf = document.getElementById('attendanceExportPdf');
   const attendanceClear = document.getElementById('attendanceClearAll');
   let attendanceRecords = [];
+  let attendancePdfRefreshed = false;
+
+  function setAttendancePdfReady(ready) {
+    attendancePdfRefreshed = Boolean(ready);
+    if (attendanceExportPdf) attendanceExportPdf.disabled = !attendancePdfRefreshed;
+  }
 
   function loadAttendanceRecords() {
     try {
@@ -1368,6 +1397,8 @@
         attendanceRecords = attendanceRecords.filter((entry) => entry.id !== record.id);
         saveAttendanceRecords();
         renderAttendanceRecords();
+        setAttendancePdfReady(false);
+        if (attendanceFeedback) attendanceFeedback.textContent = 'Registro eliminado. Pulsa ACTUALIZAR antes de descargar el PDF.';
       });
       item.append(detail, remove);
       attendanceList.appendChild(item);
@@ -1377,6 +1408,7 @@
   if (attendanceForm && attendanceNameInput && attendanceStatusInput) {
     loadAttendanceRecords();
     renderAttendanceRecords();
+    setAttendancePdfReady(false);
     attendanceForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const name = attendanceNameInput.value.trim().replace(/\s+/g, ' ');
@@ -1394,33 +1426,170 @@
       });
       saveAttendanceRecords();
       renderAttendanceRecords();
+      setAttendancePdfReady(false);
+      if (attendanceFeedback) attendanceFeedback.textContent = 'Respuesta guardada. Pulsa ACTUALIZAR antes de generar el PDF.';
       attendanceForm.reset();
     });
   }
 
-  attendanceExport?.addEventListener('click', () => {
-    const yesRecords = attendanceRecords.filter((item) => item.status === 'yes');
-    const noRecords = attendanceRecords.filter((item) => item.status === 'no');
-    const lines = [
-      'XV AÑOS DE NICOLE ROA BARRAGÁN',
-      'CONTROL DE ASISTENCIA',
-      `Respuestas registradas: ${attendanceRecords.length}`,
-      `Personas que asistirán: ${yesRecords.length}`,
-      `Respuestas de no asistencia: ${noRecords.length}`,
-      '',
-      'DETALLE:'
-    ];
-    attendanceRecords.forEach((item, index) => {
-      const status = item.status === 'yes' ? 'Confirmó asistencia · 1 persona' : 'No podrá asistir';
-      lines.push(`${index + 1}. ${item.name} — ${status}`);
+  // Actualiza la vista desde el almacenamiento local antes de crear el reporte.
+  attendanceRefresh?.addEventListener('click', () => {
+    loadAttendanceRecords();
+    renderAttendanceRecords();
+    setAttendancePdfReady(true);
+    const stamp = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+    if (attendanceFeedback) attendanceFeedback.textContent = `Lista actualizada (${attendanceRecords.length} registros) · ${stamp}. Ya puedes descargar el PDF.`;
+  });
+
+  // PDF autónomo: se crea en el navegador, sin librerías externas ni conexión a servicios.
+  // Los textos se codifican en WinAnsi y se dibujan con las fuentes estándar de PDF.
+  function makeAttendancePdf(records) {
+    const pageW = 595.28;
+    const pageH = 841.89;
+    const yesRecords = records.filter((item) => item.status === 'yes');
+    const noRecords = records.filter((item) => item.status === 'no');
+    const pages = [];
+    const rowsPerPage = 23;
+    const pageCount = Math.max(1, Math.ceil(records.length / rowsPerPage));
+    const toHex = (value) => {
+      const special = { '€': 0x80, '‚': 0x82, 'ƒ': 0x83, '„': 0x84, '…': 0x85, '†': 0x86, '‡': 0x87, 'ˆ': 0x88, '‰': 0x89, 'Š': 0x8A, '‹': 0x8B, 'Œ': 0x8C, 'Ž': 0x8E, '‘': 0x91, '’': 0x92, '“': 0x93, '”': 0x94, '•': 0x95, '–': 0x96, '—': 0x97, '˜': 0x98, '™': 0x99, 'š': 0x9A, '›': 0x9B, 'œ': 0x9C, 'ž': 0x9E, 'Ÿ': 0x9F };
+      let output = '';
+      for (const char of String(value ?? '')) {
+        const cp = char.codePointAt(0);
+        const byte = cp <= 0x7F || (cp >= 0xA0 && cp <= 0xFF) ? cp : special[char] ?? 0x3F;
+        output += byte.toString(16).padStart(2, '0').toUpperCase();
+      }
+      return output;
+    };
+    const num = (n) => Number(n.toFixed(2)).toString();
+    const fill = (r, g, b) => `${num(r)} ${num(g)} ${num(b)} rg\n`;
+    const stroke = (r, g, b) => `${num(r)} ${num(g)} ${num(b)} RG\n`;
+    const rect = (x, y, w, h, color) => `${fill(...color)}${num(x)} ${num(y)} ${num(w)} ${num(h)} re f\n`;
+    const line = (x1, y1, x2, y2, color, width = 1) => `${stroke(...color)}${num(width)} w ${num(x1)} ${num(y1)} m ${num(x2)} ${num(y2)} l S\n`;
+    const text = (value, x, y, size = 10, color = [0.10, 0.16, 0.27], font = 'F1') => `${fill(...color)}BT /${font} ${num(size)} Tf 1 0 0 1 ${num(x)} ${num(y)} Tm <${toHex(value)}> Tj ET\n`;
+    const centered = (value, center, y, size = 10, color = [0.10, 0.16, 0.27], font = 'F1') => {
+      const approximateWidth = String(value).length * size * (font === 'F2' ? 0.56 : 0.51);
+      return text(value, center - approximateWidth / 2, y, size, color, font);
+    };
+    const truncate = (value, max) => {
+      const clean = String(value ?? '').replace(/\s+/g, ' ').trim();
+      return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean;
+    };
+    const formatWhen = (value) => {
+      const date = value ? new Date(value) : null;
+      if (!date || Number.isNaN(date.getTime())) return '—';
+      return new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+    };
+
+    for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+      let stream = '';
+      stream += rect(0, 0, pageW, pageH, [0.985, 0.974, 0.953]);
+      const firstPage = pageIndex === 0;
+      const headerH = firstPage ? 142 : 92;
+      stream += rect(0, pageH - headerH, pageW, headerH, [0.055, 0.105, 0.19]);
+      stream += rect(0, pageH - headerH, pageW, 3, [0.77, 0.59, 0.29]);
+      if (firstPage) {
+        stream += centered('XV AÑOS DE NICOLE ROA BARRAGÁN', pageW / 2, 785, 17, [0.98, 0.93, 0.84], 'F2');
+        stream += centered('CONTROL DE ASISTENCIA', pageW / 2, 755, 11, [0.91, 0.78, 0.55], 'F2');
+        const generated = new Intl.DateTimeFormat('es-MX', { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
+        stream += centered(`Reporte actualizado · ${generated}`, pageW / 2, 729, 8.5, [0.91, 0.87, 0.80], 'F1');
+        const cardY = 632;
+        const cardW = 158;
+        const gap = 9;
+        const startX = 42;
+        const cards = [
+          { label: 'RESPUESTAS', value: records.length },
+          { label: 'ASISTIRÁN', value: yesRecords.length },
+          { label: 'NO ASISTIRÁN', value: noRecords.length }
+        ];
+        cards.forEach((card, idx) => {
+          const x = startX + idx * (cardW + gap);
+          stream += rect(x, cardY, cardW, 64, [0.965, 0.946, 0.912]);
+          stream += stroke(0.77, 0.59, 0.29) + `0.8 w ${x} ${cardY} ${cardW} 64 re S\n`;
+          stream += centered(String(card.value), x + cardW / 2, cardY + 31, 23, [0.07, 0.14, 0.25], 'F2');
+          stream += centered(card.label, x + cardW / 2, cardY + 13, 7.3, [0.55, 0.40, 0.22], 'F2');
+        });
+      } else {
+        stream += centered('XV AÑOS DE NICOLE ROA BARRAGÁN', pageW / 2, 803, 14, [0.98, 0.93, 0.84], 'F2');
+        stream += centered('CONTROL DE ASISTENCIA · CONTINUACIÓN', pageW / 2, 777, 8.5, [0.91, 0.78, 0.55], 'F2');
+      }
+
+      const tableX = 42;
+      const tableW = pageW - 84;
+      const tableTop = firstPage ? 604 : 738;
+      const headerRowH = 25;
+      stream += rect(tableX, tableTop - headerRowH, tableW, headerRowH, [0.10, 0.17, 0.29]);
+      stream += text('Nº', 50, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
+      stream += text('NOMBRE COMPLETO', 82, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
+      stream += text('RESPUESTA', 365, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
+      stream += text('FECHA', 465, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
+
+      const start = pageIndex * rowsPerPage;
+      const pageRows = records.slice(start, start + rowsPerPage);
+      if (!records.length) {
+        stream += rect(tableX, tableTop - headerRowH - 42, tableW, 42, [1, 0.994, 0.98]);
+        stream += centered('Aún no hay respuestas registradas.', pageW / 2, tableTop - 43, 10, [0.40, 0.37, 0.34], 'F1');
+      } else {
+        pageRows.forEach((record, localIndex) => {
+          const rowTop = tableTop - headerRowH - localIndex * 24;
+          const rowY = rowTop - 24;
+          const bg = localIndex % 2 === 0 ? [1, 0.994, 0.98] : [0.965, 0.946, 0.912];
+          stream += rect(tableX, rowY, tableW, 24, bg);
+          stream += line(tableX, rowY, tableX + tableW, rowY, [0.84, 0.79, 0.70], 0.35);
+          stream += text(String(start + localIndex + 1), 50, rowY + 8, 8, [0.42, 0.35, 0.26], 'F1');
+          stream += text(truncate(record.name, 48), 82, rowY + 8, 8.4, [0.10, 0.16, 0.27], 'F1');
+          const isYes = record.status === 'yes';
+          stream += text(isYes ? 'ASISTIRÁ' : 'NO ASISTIRÁ', 365, rowY + 8, 7.4, isYes ? [0.12, 0.42, 0.29] : [0.62, 0.25, 0.27], 'F2');
+          stream += text(formatWhen(record.createdAt), 465, rowY + 8, 7.0, [0.42, 0.38, 0.33], 'F1');
+        });
+      }
+
+      stream += line(42, 36, pageW - 42, 36, [0.77, 0.59, 0.29], 0.6);
+      stream += text('Nicole Roa Barragán · 21 de noviembre de 2026', 42, 22, 7.2, [0.38, 0.34, 0.29], 'F1');
+      stream += text(`Página ${pageIndex + 1} de ${pageCount}`, pageW - 103, 22, 7.2, [0.38, 0.34, 0.29], 'F1');
+      pages.push(stream);
+    }
+
+    const objects = [];
+    objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    objects[2] = `<< /Type /Pages /Kids [${pages.map((_, index) => `${5 + index * 2} 0 R`).join(' ')}] /Count ${pages.length} >>`;
+    objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+    objects[4] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+    pages.forEach((stream, index) => {
+      const pageId = 5 + index * 2;
+      const contentId = pageId + 1;
+      objects[pageId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentId} 0 R >>`;
+      objects[contentId] = `<< /Length ${stream.length} >>\nstream\n${stream}endstream`;
     });
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/plain;charset=utf-8' });
+
+    let pdf = '%PDF-1.4\n%NicoleXV\n';
+    const offsets = [0];
+    for (let id = 1; id < objects.length; id += 1) {
+      offsets[id] = pdf.length;
+      pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+    }
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+    for (let id = 1; id < objects.length; id += 1) pdf += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
+    pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+    return new Blob([new TextEncoder().encode(pdf)], { type: 'application/pdf' });
+  }
+
+  attendanceExportPdf?.addEventListener('click', () => {
+    if (!attendancePdfRefreshed) {
+      if (attendanceFeedback) attendanceFeedback.textContent = 'Primero pulsa ACTUALIZAR para recargar la lista.';
+      return;
+    }
+    const blob = makeAttendancePdf(attendanceRecords);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Nicole_XV_Control_de_Asistencia.txt';
+    link.download = 'Nicole_XV_Control_de_Asistencia.pdf';
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    if (attendanceFeedback) attendanceFeedback.textContent = 'Reporte PDF generado con la información actualizada.';
   });
 
   attendanceClear?.addEventListener('click', () => {
@@ -1429,6 +1598,7 @@
     attendanceRecords = [];
     saveAttendanceRecords();
     renderAttendanceRecords();
-    if (attendanceFeedback) attendanceFeedback.textContent = 'Se borraron los registros locales.';
+    setAttendancePdfReady(false);
+    if (attendanceFeedback) attendanceFeedback.textContent = 'Se borraron los registros locales. Pulsa ACTUALIZAR antes de descargar el PDF.';
   });
 })();

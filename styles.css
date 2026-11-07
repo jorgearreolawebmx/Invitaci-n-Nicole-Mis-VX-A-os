@@ -2433,8 +2433,11 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 .attendance-record small { display: block; margin-top: 3px; color: #dbc9ad; font: 10px/1.35 var(--sans); }
 .attendance-record button { width: 28px; height: 28px; border: 1px solid rgba(220,190,133,.4); border-radius: 50%; background: transparent; color: #f1d7ad; font-size: 17px; cursor: pointer; }
 .attendance-empty { padding: 12px 6px; color: #d9c9b5; font: italic 13px var(--serif); text-align: center; }
-.attendance-admin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
-.attendance-admin-actions button { min-height: 38px; padding: 7px 5px; font-size: 8px; }
+.attendance-pdf-help { margin: 14px 0 8px; color: #e0d0b8; font: 10px/1.45 var(--sans); text-align: left; }
+.attendance-admin-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 8px; }
+.attendance-admin-actions button { min-height: 40px; padding: 8px 6px; font-size: 9px; }
+.attendance-admin-actions button:disabled { opacity: .42; cursor: not-allowed; filter: grayscale(.35); }
+.attendance-admin-actions .attendance-clear-button { grid-column: 1 / -1; }
 .attendance-admin-limit { margin: 12px 0 0; color: #d7c8b3; font: 10px/1.45 var(--sans); }
 @media (max-width: 360px) {
   .attendance-admin { padding-left: 10px; padding-right: 10px; }
@@ -3371,3 +3374,45 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
     height: 12px !important;
   }
 }
+
+
+/* NOV 07 — distintivo de pases sobre el nombre familiar; pase juvenil general sin nombre. */
+.family-greeting .family-pass-count-badge {
+  width: min(58%, 184px);
+  margin: 5px auto 8px;
+}
+.family-greeting .family-pass-count-badge strong {
+  font-size: clamp(17px, 4.5vw, 23px);
+}
+.personal-pass-single {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  padding: 6px 15px;
+  border: 1px solid rgba(183,139,72,.72);
+  border-radius: 999px;
+  color: #9d7137;
+  background: rgba(255,250,242,.76);
+  font: 700 9px/1 var(--sans);
+  letter-spacing: .17em;
+  box-shadow: 0 2px 7px rgba(25,40,62,.08);
+}
+.personal-pass-single[hidden] { display:none !important; }
+.family-greeting.is-personal-pass .personal-pass-badge {
+  width: min(72%, 238px);
+  max-height: 160px;
+  margin: 4px auto 4px;
+}
+.family-greeting.is-personal-pass h3[hidden] { display:none !important; }
+.family-personal-mode-note {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(216,189,139,.35);
+  border-radius: 5px;
+  color: rgba(241,228,208,.82);
+  background: rgba(255,255,255,.045);
+  font: 11px/1.45 var(--sans);
+  text-align: center;
+}
+.family-personal-mode-note[hidden] { display:none !important; }

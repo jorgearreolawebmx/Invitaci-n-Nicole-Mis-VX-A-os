@@ -192,9 +192,9 @@ ACTUALIZACIÓN: SESIÓN PRE XV, PÉTALOS Y CONTROL DE ASISTENCIA
 - Se redujo la separación visual entre la confirmación y el cierre, para que el fondo de tela continúe sin una franja vacía.
 - En la confirmación, al elegir “Sí, asistiré”, únicamente se pide el nombre completo. El mensaje de WhatsApp confirma la asistencia sin preguntar ni incluir acompañantes. El panel administrativo cuenta una persona por cada respuesta afirmativa.
 - El acceso “LINK PERSONALIZADO” conserva la clave 12345. Después del acceso aparece “Resumen de asistencia”, con conteo de respuestas, total de asistentes y respuestas de no asistencia.
-- El panel permite registrar manualmente cada respuesta recibida, eliminar registros y descargar la lista con resumen en un archivo TXT. Los datos se conservan mediante localStorage en el navegador de administración.
+- El panel permite registrar manualmente cada respuesta recibida, eliminar registros y generar un reporte PDF con resumen y tabla. Antes de descargarlo, pulsa ACTUALIZAR para volver a leer los registros guardados. Los datos se conservan mediante localStorage en el navegador de administración.
 - IMPORTANTE: el envío por WhatsApp no notifica automáticamente a la página ni a GitHub Pages. Por eso, para que el resumen refleje los mensajes recibidos, Sheylla debe capturar cada respuesta en el panel. Los registros no se sincronizan entre teléfonos o computadoras. Para sincronización automática entre dispositivos sería necesario un servicio de almacenamiento compartido (por ejemplo, Google Apps Script/Sheets o una base de datos).
-- Recomendación: entrar al panel administrativo desde el mismo navegador/computadora para conservar el registro y descargar periódicamente el TXT como respaldo.
+- Recomendación: entrar al panel administrativo desde el mismo navegador/computadora para conservar el registro y descargar periódicamente el PDF como respaldo.
 
 
 ACTUALIZACION DE INTERFAZ
@@ -232,8 +232,8 @@ OPTIMIZACIÓN DE MOVIMIENTO
 ACTUALIZACIÓN: INVITACIONES FAMILIARES Y PASE PERSONAL
 - En el panel del final, la clave de acceso sigue siendo 12345.
 - Selecciona “Invitación por familia” para generar un enlace con ?familia=...
-- Selecciona “Pase personal” y escribe el nombre para generar ?pase=personal&invitado=...
-- Los enlaces de pase personal muestran el emblema PASE PERSONAL.
+- Selecciona “Pase personal” para generar un enlace general para jóvenes: no pide nombre, no incorpora nombre en la URL y siempre asigna un solo pase (?pase=personal&pases=1).
+- Los enlaces de pase personal muestran únicamente el emblema PASE PERSONAL y el indicador de 1 pase, sin nombre de invitado.
 - Esta función usa parámetros de URL y no requiere base de datos ni Google Apps Script.
 - La clave es una barrera visual básica, no autenticación segura, porque la invitación es estática.
 
@@ -264,3 +264,12 @@ ACTUALIZACIÓN DEL PANEL ADMINISTRATIVO · 07 NOV 2026
 - El emblema PASES se actualizó con el PNG proporcionado y se optimizó para web.
 - En GitHub Pages, los enlaces usan automáticamente la URL pública actual. Al abrir index.html localmente, pega una vez la URL HTTPS de GitHub Pages en el campo solicitado para habilitar los botones de copia.
 - Las familias adicionales que se agreguen se conservan en el almacenamiento local del navegador administrativo.
+
+
+ACTUALIZACIÓN: DISTINTIVOS EN INVITACIÓN Y REPORTE PDF DE ASISTENCIA (07-11-2026)
+- En las invitaciones familiares con cantidad asignada, la insignia PASES aparece arriba del nombre de la familia. El número se coloca en el recuadro marfil de la insignia. Solo se muestran cantidades expresamente indicadas por la familia organizadora.
+- El Pase personal es general para jóvenes: no lleva nombre de invitado, muestra el emblema PASE PERSONAL y corresponde exactamente a 1 pase. El enlace usa ?pase=personal&pases=1.
+- El resumen de asistencia ya no exporta TXT. Se genera un PDF organizado con encabezado, fecha de actualización, resumen de respuestas, total de asistentes y tabla de nombres, respuestas y fechas.
+- Antes de generar el PDF, pulsa ACTUALIZAR para volver a leer los registros guardados en el navegador administrativo. Después se habilita DESCARGAR PDF.
+- El PDF se genera directamente en el navegador sin dependencias externas. La descarga del PDF toma los registros locales del dispositivo donde se está administrando la invitación.
+- Limitación: este panel sigue usando localStorage; no sincroniza respuestas entre distintos dispositivos. Las respuestas recibidas por WhatsApp deben capturarse manualmente en el mismo navegador administrativo.

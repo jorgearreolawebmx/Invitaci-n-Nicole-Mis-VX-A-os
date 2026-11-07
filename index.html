@@ -65,11 +65,12 @@
       <div id="familyGreeting" class="family-greeting" hidden aria-live="polite">
         <p id="familyGreetingEyebrow" class="eyebrow">CON MUCHO CARIÑO, INVITAMOS A</p>
         <img id="personalPassBadge" class="personal-pass-badge" src="assets/pase-personal.png" alt="Pase personal" hidden>
-        <h3 id="familyGreetingName"></h3>
+        <span id="personalPassSingle" class="personal-pass-single" aria-label="Un pase" hidden>1 PASE</span>
         <div id="familyPassCountBadge" class="family-pass-count-badge" hidden aria-label="Cantidad de pases asignados">
           <img src="assets/pase-cantidad.png" alt="Pases asignados">
           <strong id="familyPassCountValue"></strong>
         </div>
+        <h3 id="familyGreetingName"></h3>
         <p id="familyGreetingCopy" class="family-greeting-copy">Nos encantará compartir esta celebración tan especial con ustedes.</p>
         <div class="thin-divider" aria-hidden="true"></div>
       </div>
@@ -498,10 +499,11 @@
               <label for="invitationLinkType">Tipo de invitación</label>
               <select id="invitationLinkType" name="invitationType" class="family-admin-select">
                 <option value="family">Invitación por familia</option>
-                <option value="personal">Pase personal</option>
+                <option value="personal">Pase personal para jóvenes · 1 pase</option>
               </select>
               <label id="familyNameLabel" for="familyNameInput">Nombre de la familia</label>
               <input id="familyNameInput" name="family" type="text" maxlength="70" autocomplete="off" placeholder="Ej. Familia Arreola" required>
+              <p id="familyPersonalModeNote" class="family-personal-mode-note" hidden>Enlace general para los jóvenes: no lleva nombre y corresponde a un solo pase.</p>
               <div id="familyPassCountWrap" class="family-pass-input-wrap">
                 <label for="familyPassCountInput">Cantidad de pases (opcional)</label>
                 <input id="familyPassCountInput" name="passes" type="number" min="1" max="30" step="1" inputmode="numeric" placeholder="Ej. 2">
@@ -515,7 +517,7 @@
               <p id="familyCopyFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
               <button id="familyNewLink" class="family-admin-secondary" type="button">GENERAR OTRO</button>
             </div>
-            <p class="family-admin-note">Elige entre invitación familiar o pase personal. Cada enlace muestra el nombre y el distintivo correspondiente. Se generan en este navegador.</p>
+            <p class="family-admin-note">Las invitaciones familiares muestran el nombre y la cantidad asignada. El pase personal es un enlace general para jóvenes, sin nombre y válido para una persona.</p>
 
             <section class="attendance-admin" aria-labelledby="attendanceAdminTitle">
               <div class="attendance-admin-heading">
@@ -544,9 +546,11 @@
                 <span id="attendanceListCount">0 registros</span>
               </div>
               <ol id="attendanceRecordList" class="attendance-record-list"></ol>
+              <p class="attendance-pdf-help">Pulsa ACTUALIZAR para volver a leer la lista guardada en este navegador. Después podrás generar el reporte en PDF.</p>
               <div class="attendance-admin-actions">
-                <button id="attendanceExportTxt" class="family-admin-secondary" type="button">DESCARGAR LISTA TXT</button>
-                <button id="attendanceClearAll" class="family-admin-secondary" type="button">BORRAR REGISTROS</button>
+                <button id="attendanceRefresh" class="family-admin-secondary" type="button">ACTUALIZAR</button>
+                <button id="attendanceExportPdf" class="family-admin-primary" type="button" disabled>DESCARGAR PDF</button>
+                <button id="attendanceClearAll" class="family-admin-secondary attendance-clear-button" type="button">BORRAR REGISTROS</button>
               </div>
               <p class="attendance-admin-limit">Importante: este control se guarda únicamente en el navegador donde lo administras. Como WhatsApp no devuelve las respuestas a la página, debes registrar aquí manualmente cada mensaje recibido. El conteo registra una persona por cada respuesta afirmativa y no se sincroniza entre dispositivos.</p>
             </section>
