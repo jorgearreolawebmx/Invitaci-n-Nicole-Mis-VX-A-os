@@ -443,8 +443,10 @@
         rsvpName.focus();
         return;
       }
-      const family = new URLSearchParams(window.location.search).get('familia');
-      const familyLine = family ? `\nInvitación dirigida a: ${family}.` : '';
+      const params = new URLSearchParams(window.location.search);
+      const family = params.get('familia');
+      const invitee = params.get('invitado');
+      const familyLine = family ? `\nInvitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? `\nPase personal para: ${invitee}.` : '');
       const message = `Hola Sheylla, soy ${guestName}.${familyLine} Confirmo mi asistencia a los XV años de Nicole Roa Barragán, el 21 de noviembre de 2026. ¡Muchas gracias por la invitación!`;
       const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
       const link = document.createElement('a');
@@ -459,8 +461,10 @@
 
   if (rsvpNo) {
     rsvpNo.addEventListener('click', () => {
-      const family = new URLSearchParams(window.location.search).get('familia');
-      const familyLine = family ? ` Invitación dirigida a: ${family}.` : '';
+      const params = new URLSearchParams(window.location.search);
+      const family = params.get('familia');
+      const invitee = params.get('invitado');
+      const familyLine = family ? ` Invitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? ` Pase personal para: ${invitee}.` : '');
       const message = `Hola Sheylla.${familyLine} Muchas gracias por la invitación a los XV años de Nicole. Lamentablemente no podré asistir.`;
       const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
       const link = document.createElement('a');
@@ -543,7 +547,7 @@
     });
   });
 
-  // Galería en carrusel: reproducción en bucle, flechas, puntos, gesto de deslizar y ampliación.
+  // Carrusel de infancia estilo mazo 3D: tarjeta central protagonista y tarjetas en profundidad.
   const galleryCarousel = document.getElementById('galleryCarousel');
   const galleryViewport = document.getElementById('galleryViewport');
   const galleryTrack = document.getElementById('galleryTrack');
@@ -558,23 +562,41 @@
   let galleryIsVisible = false;
   let galleryPointerStart = null;
   let suppressGalleryClick = false;
+  const deckClasses = ['is-active','is-prev','is-next','is-far-prev','is-far-next','is-back-prev','is-back-next','is-deck-hidden'];
+
+  function circularOffset(index, current, length) {
+    const forward = (index - current + length) % length;
+    if (forward === 0) return 0;
+    return forward <= length / 2 ? forward : forward - length;
+  }
+
+  function deckClassForOffset(offset) {
+    if (offset === 0) return 'is-active';
+    if (offset === -1) return 'is-prev';
+    if (offset === 1) return 'is-next';
+    if (offset === -2) return 'is-far-prev';
+    if (offset === 2) return 'is-far-next';
+    if (offset === -3) return 'is-back-prev';
+    if (offset === 3) return 'is-back-next';
+    return 'is-deck-hidden';
+  }
 
   function setGallerySlide(nextIndex, restartAutoplay = true) {
     if (!gallerySlides.length || !galleryTrack) return;
     galleryIndex = (nextIndex + gallerySlides.length) % gallerySlides.length;
-    galleryTrack.style.transform = `translate3d(${-galleryIndex * 100}%, 0, 0)`;
     gallerySlides.forEach((slide, index) => {
-      const active = index === galleryIndex;
-      slide.classList.toggle('is-active', active);
-      slide.setAttribute('aria-hidden', String(!active));
+      deckClasses.forEach((className) => slide.classList.remove(className));
+      const offset = circularOffset(index, galleryIndex, gallerySlides.length);
+      const positionClass = deckClassForOffset(offset);
+      slide.classList.add(positionClass);
+      const active = offset === 0;
+      slide.setAttribute('aria-hidden', String(Math.abs(offset) > 0));
+      slide.tabIndex = active ? 0 : -1;
+      slide.setAttribute('aria-current', String(active));
       const image = slide.querySelector('img');
       if (image) {
-        // Carga la foto activa y las vecinas; las demás permanecen diferidas.
-        const distance = Math.min(
-          Math.abs(index - galleryIndex),
-          gallerySlides.length - Math.abs(index - galleryIndex)
-        );
-        if (distance <= 1 && galleryIsVisible) image.loading = 'eager';
+        // Carga la foto protagonista y las tarjetas próximas; el resto queda diferido.
+        if (Math.abs(offset) <= 2 && galleryIsVisible) image.loading = 'eager';
         else image.loading = 'lazy';
         if (active && galleryCarousel?.classList.contains('is-visible')) {
           image.style.animation = 'none';
@@ -588,7 +610,7 @@
       dot.classList.toggle('is-active', active);
       dot.setAttribute('aria-current', String(active));
     });
-    if (galleryStatus) galleryStatus.textContent = `Desliza para ver más fotografías · ${galleryIndex + 1} de ${gallerySlides.length}`;
+    if (galleryStatus) galleryStatus.textContent = `Fotografía ${galleryIndex + 1} de ${gallerySlides.length} · Desliza para recorrer`;
     if (restartAutoplay) restartGalleryAutoplay();
   }
 
@@ -598,9 +620,14 @@
   }
 
   function startGalleryAutoplay() {
-    if (gallerySlides.length < 2 || !galleryIsVisible || document.hidden) return;
+    if (gallerySlides.length < 2 || !galleryIsVisible || document.hidden || !lightboxIsClosed()) return;
     stopGalleryAutoplay();
-    galleryTimer = window.setInterval(() => setGallerySlide(galleryIndex + 1, false), 5100);
+    galleryTimer = window.setInterval(() => setGallerySlide(galleryIndex + 1, false), 4300);
+  }
+
+  function lightboxIsClosed() {
+    const box = document.getElementById('lightbox');
+    return !box || box.hidden;
   }
 
   function restartGalleryAutoplay() {
@@ -640,7 +667,7 @@
       const dx = event.clientX - galleryPointerStart.x;
       const dy = event.clientY - galleryPointerStart.y;
       galleryPointerStart = null;
-      if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy) * 1.12) {
+      if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.08) {
         suppressGalleryClick = true;
         window.setTimeout(() => { suppressGalleryClick = false; }, 450);
         setGallerySlide(galleryIndex + (dx < 0 ? 1 : -1));
@@ -651,15 +678,12 @@
     if ('IntersectionObserver' in window && galleryCarousel) {
       const galleryObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-          galleryIsVisible = entry.isIntersecting && entry.intersectionRatio >= 0.25;
+          galleryIsVisible = entry.isIntersecting && entry.intersectionRatio >= 0.2;
           galleryCarousel.classList.toggle('is-visible', galleryIsVisible);
           if (galleryIsVisible) {
             gallerySlides.forEach((slide, index) => {
-              const distance = Math.min(
-                Math.abs(index - galleryIndex),
-                gallerySlides.length - Math.abs(index - galleryIndex)
-              );
-              if (distance <= 1) {
+              const offset = circularOffset(index, galleryIndex, gallerySlides.length);
+              if (Math.abs(offset) <= 2) {
                 const image = slide.querySelector('img');
                 if (image) image.loading = 'eager';
               }
@@ -669,7 +693,7 @@
             stopGalleryAutoplay();
           }
         });
-      }, { threshold: [0, 0.25, 0.5] });
+      }, { threshold: [0, 0.2, 0.4] });
       galleryObserver.observe(galleryCarousel);
     } else {
       galleryIsVisible = true;
@@ -679,6 +703,117 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopGalleryAutoplay();
       else startGalleryAutoplay();
+    });
+  }
+
+  // Carrusel Pre Quince: utiliza el mismo mazo 3D y conserva los 15 espacios bloqueados.
+  const prexvCarousel = document.getElementById('prexvCarousel');
+  const prexvViewport = document.getElementById('prexvViewport');
+  const prexvTrack = document.getElementById('prexvGalleryTrack');
+  const prexvSlides = prexvTrack ? Array.from(prexvTrack.querySelectorAll('.prexv-photo-slot')) : [];
+  const prexvPrev = document.getElementById('prexvPrev');
+  const prexvNext = document.getElementById('prexvNext');
+  const prexvDotsContainer = document.getElementById('prexvDots');
+  const prexvStatus = document.getElementById('prexvStatus');
+  let prexvDots = [];
+  let prexvIndex = 0;
+  let prexvTimer = null;
+  let prexvVisible = false;
+  let prexvPointerStart = null;
+
+  function setPrexvSlide(nextIndex, restartAutoplay = true) {
+    if (!prexvSlides.length) return;
+    prexvIndex = (nextIndex + prexvSlides.length) % prexvSlides.length;
+    prexvSlides.forEach((slide, index) => {
+      deckClasses.forEach((className) => slide.classList.remove(className));
+      const offset = circularOffset(index, prexvIndex, prexvSlides.length);
+      slide.classList.add(deckClassForOffset(offset));
+      const active = offset === 0;
+      slide.setAttribute('aria-hidden', String(!active));
+      slide.tabIndex = active ? 0 : -1;
+      const image = slide.querySelector('img');
+      if (image) image.loading = Math.abs(offset) <= 2 && prexvVisible ? 'eager' : 'lazy';
+    });
+    prexvDots.forEach((dot, index) => {
+      dot.classList.toggle('is-active', index === prexvIndex);
+      dot.setAttribute('aria-current', String(index === prexvIndex));
+    });
+    if (prexvStatus) prexvStatus.textContent = `Espacio ${prexvIndex + 1} de ${prexvSlides.length} · Galería próximamente`;
+    if (restartAutoplay) restartPrexvAutoplay();
+  }
+
+  function stopPrexvAutoplay() {
+    window.clearInterval(prexvTimer);
+    prexvTimer = null;
+  }
+
+  function startPrexvAutoplay() {
+    if (prexvSlides.length < 2 || !prexvVisible || document.hidden) return;
+    stopPrexvAutoplay();
+    prexvTimer = window.setInterval(() => setPrexvSlide(prexvIndex + 1, false), 4300);
+  }
+
+  function restartPrexvAutoplay() {
+    stopPrexvAutoplay();
+    startPrexvAutoplay();
+  }
+
+  if (prexvSlides.length) {
+    if (prexvDotsContainer) {
+      const fragment = document.createDocumentFragment();
+      prexvSlides.forEach((slide, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'prexv-dot';
+        dot.dataset.prexvIndex = String(index);
+        dot.setAttribute('aria-label', `Mostrar espacio Pre Quince ${index + 1}`);
+        fragment.appendChild(dot);
+      });
+      prexvDotsContainer.replaceChildren(fragment);
+      prexvDots = Array.from(prexvDotsContainer.querySelectorAll('.prexv-dot'));
+      prexvDotsContainer.addEventListener('click', (event) => {
+        const dot = event.target.closest('.prexv-dot');
+        if (dot && prexvDotsContainer.contains(dot)) setPrexvSlide(Number(dot.dataset.prexvIndex) || 0);
+      });
+    }
+    setPrexvSlide(0, false);
+    prexvPrev?.addEventListener('click', () => setPrexvSlide(prexvIndex - 1));
+    prexvNext?.addEventListener('click', () => setPrexvSlide(prexvIndex + 1));
+    prexvViewport?.addEventListener('pointerdown', (event) => {
+      prexvPointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    }, { passive: true });
+    prexvViewport?.addEventListener('pointerup', (event) => {
+      if (!prexvPointerStart || prexvPointerStart.id !== event.pointerId) return;
+      const dx = event.clientX - prexvPointerStart.x;
+      const dy = event.clientY - prexvPointerStart.y;
+      prexvPointerStart = null;
+      if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.08) {
+        setPrexvSlide(prexvIndex + (dx < 0 ? 1 : -1));
+      }
+    }, { passive: true });
+    prexvViewport?.addEventListener('pointercancel', () => { prexvPointerStart = null; }, { passive: true });
+    prexvSlides.forEach((slide, index) => {
+      slide.addEventListener('click', () => {
+        if (!slide.classList.contains('is-active')) setPrexvSlide(index);
+      });
+    });
+    if ('IntersectionObserver' in window && prexvCarousel) {
+      const prexvObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          prexvVisible = entry.isIntersecting && entry.intersectionRatio >= 0.2;
+          prexvCarousel.classList.toggle('is-visible', prexvVisible);
+          if (prexvVisible) startPrexvAutoplay();
+          else stopPrexvAutoplay();
+        });
+      }, { threshold: [0, 0.2, 0.4] });
+      prexvObserver.observe(prexvCarousel);
+    } else {
+      prexvVisible = true;
+      startPrexvAutoplay();
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopPrexvAutoplay();
+      else startPrexvAutoplay();
     });
   }
 
@@ -724,6 +859,7 @@
         return;
       }
       if (button.classList.contains('is-active')) openGallery(index);
+      else setGallerySlide(index);
     });
   });
 
@@ -778,19 +914,35 @@
   // La galería Pre Quince se mantiene visualmente bloqueada con 15 espacios vacíos.
   // Cuando se carguen las fotografías, se sustituirán los espacios por imágenes reales.
 
-  // Personalización por enlace: ?familia=Familia%20Arreola.
-  // El nombre se inserta mediante textContent para evitar interpretar HTML.
+  // Personalización por enlace: invitación familiar (?familia=...) o pase personal (?pase=personal&invitado=...).
+  // El contenido se inserta con textContent para evitar interpretar HTML.
   const familyParams = new URLSearchParams(window.location.search);
   const rawFamilyName = familyParams.get('familia');
+  const rawPassType = familyParams.get('pase');
+  const rawInviteeName = familyParams.get('invitado');
   const familyGreeting = document.getElementById('familyGreeting');
+  const familyGreetingEyebrow = document.getElementById('familyGreetingEyebrow');
   const familyGreetingName = document.getElementById('familyGreetingName');
-  if (rawFamilyName && familyGreeting && familyGreetingName) {
-    const safeFamilyName = rawFamilyName
-      .replace(/[<>]/g, '')
-      .replace(/[\u0000-\u001F\u007F]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 70);
+  const familyGreetingCopy = document.getElementById('familyGreetingCopy');
+  const personalPassBadge = document.getElementById('personalPassBadge');
+  const cleanInvitationName = (value) => String(value || '')
+    .replace(/[<>]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 70);
+
+  if (rawPassType === 'personal' && familyGreeting && familyGreetingName) {
+    const inviteeName = cleanInvitationName(rawInviteeName);
+    if (familyGreetingEyebrow) familyGreetingEyebrow.textContent = 'INVITACIÓN PERSONAL';
+    familyGreetingName.textContent = inviteeName || 'Pase personal';
+    if (personalPassBadge) personalPassBadge.hidden = false;
+    if (familyGreetingCopy) familyGreetingCopy.textContent = 'Este pase es personal. Nos encantará compartir contigo esta celebración tan especial.';
+    familyGreeting.classList.add('is-personal-pass');
+    familyGreeting.hidden = false;
+    document.title = `${inviteeName ? inviteeName + ' · ' : ''}Pase personal · XV años de Nicole`;
+  } else if (rawFamilyName && familyGreeting && familyGreetingName) {
+    const safeFamilyName = cleanInvitationName(rawFamilyName);
     if (safeFamilyName) {
       familyGreetingName.textContent = safeFamilyName;
       familyGreeting.hidden = false;
@@ -811,6 +963,9 @@
   const familyPasswordError = document.getElementById('familyPasswordError');
   const familyLinkForm = document.getElementById('familyLinkForm');
   const familyNameInput = document.getElementById('familyNameInput');
+  const invitationLinkType = document.getElementById('invitationLinkType');
+  const familyNameLabel = document.getElementById('familyNameLabel');
+  const familyGeneratedLinkLabel = document.getElementById('familyGeneratedLinkLabel');
   const familyLinkResult = document.getElementById('familyLinkResult');
   const familyGeneratedLink = document.getElementById('familyGeneratedLink');
   const familyCopyLink = document.getElementById('familyCopyLink');
@@ -860,6 +1015,17 @@
       }
     });
   }
+
+  function updateInvitationLinkTypeUI() {
+    const personalMode = invitationLinkType?.value === 'personal';
+    if (familyNameLabel) familyNameLabel.textContent = personalMode ? 'Nombre del invitado' : 'Nombre de la familia';
+    if (familyNameInput) familyNameInput.placeholder = personalMode ? 'Ej. Jorge Isaac Arreola' : 'Ej. Familia Arreola';
+    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace de pase personal' : 'Enlace de invitación familiar';
+    const title = familyGeneratorStep?.querySelector('.family-admin-title');
+    if (title) title.textContent = personalMode ? 'Crear pase personal' : 'Crear invitación por familia';
+  }
+  invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI);
+  updateInvitationLinkTypeUI();
 
   if (familyLinkForm && familyNameInput && familyGeneratedLink && familyLinkResult) {
     familyLinkForm.addEventListener('submit', (event) => {
@@ -919,7 +1085,14 @@
       if (familyPublicUrlError) familyPublicUrlError.hidden = true;
       personalizedUrl.searchParams.delete('preview');
       personalizedUrl.searchParams.delete('familia');
-      personalizedUrl.searchParams.set('familia', familyName);
+      personalizedUrl.searchParams.delete('pase');
+      personalizedUrl.searchParams.delete('invitado');
+      if (invitationLinkType?.value === 'personal') {
+        personalizedUrl.searchParams.set('pase', 'personal');
+        personalizedUrl.searchParams.set('invitado', familyName);
+      } else {
+        personalizedUrl.searchParams.set('familia', familyName);
+      }
       familyGeneratedLink.value = personalizedUrl.toString();
       familyLinkResult.hidden = false;
       if (familyCopyFeedback) {

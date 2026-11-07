@@ -63,28 +63,41 @@
 
     <section class="family-section section-shell">
       <div id="familyGreeting" class="family-greeting" hidden aria-live="polite">
-        <p class="eyebrow">CON MUCHO CARIÑO, INVITAMOS A</p>
+        <p id="familyGreetingEyebrow" class="eyebrow">CON MUCHO CARIÑO, INVITAMOS A</p>
+        <img id="personalPassBadge" class="personal-pass-badge" src="assets/pase-personal.png" alt="Pase personal" hidden>
         <h3 id="familyGreetingName"></h3>
-        <p class="family-greeting-copy">Nos encantará compartir esta celebración tan especial con ustedes.</p>
+        <p id="familyGreetingCopy" class="family-greeting-copy">Nos encantará compartir esta celebración tan especial con ustedes.</p>
         <div class="thin-divider" aria-hidden="true"></div>
       </div>
       <p class="eyebrow family-intro">CON LA BENDICIÓN DE DIOS Y EL AMOR DE</p>
       <div class="family-group" aria-labelledby="parentsTitle">
+        <img class="family-heading-icon" src="assets/icono-papas.png" alt="Emblema de los papás">
         <h2 id="parentsTitle">Mis papás</h2>
-        <div class="family-name-list" aria-label="Nombres de los papás de Nicole">
-          <p class="family-name-row">Sheylla Indira Barragán Corona</p>
-          <span class="family-name-ornament" aria-hidden="true">✦</span>
-          <p class="family-name-row">Héctor Roa Ficache</p>
+        <div class="family-name-grid" aria-label="Nombres de los papás de Nicole">
+          <div class="family-name-card">
+            <span class="family-role">MI PAPÁ</span>
+            <p class="family-name-row">Héctor Roa Ficache</p>
+          </div>
+          <div class="family-name-card">
+            <span class="family-role">MI MAMÁ</span>
+            <p class="family-name-row">Sheylla Indira Barragán Corona</p>
+          </div>
         </div>
       </div>
       <div class="thin-divider family-divider"></div>
       <p class="eyebrow family-intro">Y EL ACOMPAÑAMIENTO DE</p>
       <div class="family-group" aria-labelledby="godparentsTitle">
+        <img class="family-heading-icon godparents-icon" src="assets/icono-padrinos.png" alt="Emblema de los padrinos con velas">
         <h2 id="godparentsTitle">Mis padrinos</h2>
-        <div class="family-name-list" aria-label="Nombres de los padrinos de Nicole">
-          <p class="family-name-row">Anaycari Dorantes Corona</p>
-          <span class="family-name-ornament" aria-hidden="true">✦</span>
-          <p class="family-name-row">Rafael Abraham Olmos García</p>
+        <div class="family-name-grid" aria-label="Nombres de los padrinos de Nicole">
+          <div class="family-name-card">
+            <span class="family-role">MI PADRINO</span>
+            <p class="family-name-row">Rafael Abraham Olmos García</p>
+          </div>
+          <div class="family-name-card">
+            <span class="family-role">MI MADRINA</span>
+            <p class="family-name-row">Anaycari Dorantes Corona</p>
+          </div>
         </div>
       </div>
     </section>
@@ -340,25 +353,62 @@
 
     <section class="xv-coming-section section-shell" id="xvComingSoon" aria-labelledby="xvComingTitle">
       <h2 id="xvComingTitle">Mi sesión Pre Quince</h2>
-      <img class="prexv-coming-plaque" src="assets/placa-proximamente.png" alt="Galería de fotografías próximamente" draggable="false">
-      <div class="prexv-gallery" aria-label="Carrusel reservado para las fotografías de la sesión Pre Quince">
-        <div class="prexv-gallery-track" id="prexvGalleryTrack">
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
-          <div class="prexv-photo-slot" aria-hidden="true"></div>
+      <div class="prexv-carousel" id="prexvCarousel" role="region" aria-roledescription="carrusel" aria-label="Galería de la sesión Pre Quince, próximamente disponible">
+        <div class="prexv-carousel-row">
+          <button class="prexv-arrow" id="prexvPrev" type="button" aria-label="Imagen anterior">‹</button>
+          <div class="prexv-viewport" id="prexvViewport">
+            <div class="prexv-gallery-track" id="prexvGalleryTrack">
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 1 de 15, próximamente" aria-hidden="false" tabindex="0">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="eager" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 2 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 3 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 4 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 5 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 6 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 7 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 8 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 9 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 10 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 11 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 12 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 13 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 14 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+              <button class="prexv-photo-slot" type="button" aria-label="Fotografía Pre Quince 15 de 15, próximamente" aria-hidden="true" tabindex="-1">
+                <img src="assets/prexv-coming-soon.webp" alt="Próximamente · Sesión Pre Quince de Nicole" loading="lazy" decoding="async" draggable="false">
+              </button>
+            </div>
+          </div>
+          <button class="prexv-arrow" id="prexvNext" type="button" aria-label="Imagen siguiente">›</button>
         </div>
+        <div class="prexv-dots" id="prexvDots" role="group" aria-label="Elegir imagen"></div>
+        <p class="prexv-status" id="prexvStatus" aria-live="polite">Desliza para recorrer la galería · 1 de 15</p>
       </div>
     </section>
 
@@ -410,9 +460,14 @@
             </form>
           </div>
           <div id="familyGeneratorStep" hidden>
-            <p class="family-admin-title">Generar invitación por familia</p>
+            <p class="family-admin-title">Crear invitación personalizada</p>
             <form id="familyLinkForm" class="family-admin-form">
-              <label for="familyNameInput">Nombre de la familia</label>
+              <label for="invitationLinkType">Tipo de invitación</label>
+              <select id="invitationLinkType" name="invitationType" class="family-admin-select">
+                <option value="family">Invitación por familia</option>
+                <option value="personal">Pase personal</option>
+              </select>
+              <label id="familyNameLabel" for="familyNameInput">Nombre de la familia</label>
               <input id="familyNameInput" name="family" type="text" maxlength="70" autocomplete="off" placeholder="Ej. Familia Arreola" required>
               <div id="familyPublicUrlWrap" class="family-public-url-wrap" hidden>
                 <label for="familyPublicUrl">Dirección pública de la invitación</label>
@@ -423,13 +478,13 @@
               <button class="family-admin-primary" type="submit">GENERAR LINK</button>
             </form>
             <div id="familyLinkResult" class="family-link-result" hidden>
-              <label for="familyGeneratedLink">Enlace personalizado</label>
+              <label id="familyGeneratedLinkLabel" for="familyGeneratedLink">Enlace personalizado</label>
               <input id="familyGeneratedLink" type="text" readonly aria-label="Enlace personalizado generado">
               <button id="familyCopyLink" class="family-admin-primary" type="button">COPIAR LINK</button>
               <p id="familyCopyFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
               <button id="familyNewLink" class="family-admin-secondary" type="button">GENERAR OTRO</button>
             </div>
-            <p class="family-admin-note">Cada enlace muestra el nombre indicado. Los enlaces se crean en este navegador.</p>
+            <p class="family-admin-note">Elige entre invitación familiar o pase personal. Cada enlace muestra el nombre y el distintivo correspondiente. Se generan en este navegador.</p>
 
             <section class="attendance-admin" aria-labelledby="attendanceAdminTitle">
               <div class="attendance-admin-heading">

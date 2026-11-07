@@ -227,3 +227,18 @@ OPTIMIZACIÓN DE MOVIMIENTO
 
 - La textura secundaria se optimizó como WebP y se actualizaron las rutas CSS.
 - Las miniaturas de la galería se cargan de forma diferida; al entrar la sección se priorizan la foto actual y sus vecinas.
+
+
+ACTUALIZACIÓN: INVITACIONES FAMILIARES Y PASE PERSONAL
+- En el panel del final, la clave de acceso sigue siendo 12345.
+- Selecciona “Invitación por familia” para generar un enlace con ?familia=...
+- Selecciona “Pase personal” y escribe el nombre para generar ?pase=personal&invitado=...
+- Los enlaces de pase personal muestran el emblema PASE PERSONAL.
+- Esta función usa parámetros de URL y no requiere base de datos ni Google Apps Script.
+- La clave es una barrera visual básica, no autenticación segura, porque la invitación es estática.
+
+
+ACTUALIZACIÓN DE CARRUSELES (07-11-2026)
+- Galería de infancia: carrusel tipo mazo 3D, tarjeta central y tarjetas laterales en profundidad, reproducción automática en bucle, flechas y gesto táctil.
+- Galería Pre Quince: 15 tarjetas con el arte COMING SOON, usando el mismo carrusel tipo mazo 3D y navegación en bucle.
+- Ambas galerías pausan el autoplay cuando salen del área visible o la pestaña queda en segundo plano.
