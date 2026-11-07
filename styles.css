@@ -754,7 +754,7 @@ body {
   transform: translateX(-50%);
   pointer-events: none;
   opacity: 0;
-  background-image: linear-gradient(rgba(255,251,248,.035), rgba(255,251,248,.035)), url("assets/fondo-tela-continuo.jpg");
+  background-image: linear-gradient(rgba(255,251,248,.035), rgba(255,251,248,.035)), url("assets/fondo-tela-continuo.webp");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -862,7 +862,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 /* AJUSTE SOLICITADO: portada blanca hasta el contador y tela con resplandor central después. */
 .scroll-backdrop {
   background-color: #f6eeea;
-  background-image: url("assets/fondo-tela-continuo.jpg");
+  background-image: url("assets/fondo-tela-continuo.webp");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -992,7 +992,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 /* TARJETAS-GRÁFICAS DE UBICACIÓN: placas PNG reales con contenido superpuesto */
 .place-section {
   background: linear-gradient(rgba(251,246,241,.82),rgba(251,246,241,.82)),
-              url("assets/fondo-tela-continuo.jpg") center/cover no-repeat;
+              url("assets/fondo-tela-continuo.webp") center/cover no-repeat;
 }
 .place-section h2 { margin-bottom: 27px; }
 .place-card.location-card {
@@ -2260,7 +2260,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
   color: #26344e !important;
   background:
     radial-gradient(ellipse 66% 70% at 50% 48%, rgba(255,253,250,.72) 0%, rgba(255,251,247,.48) 61%, rgba(255,249,244,.12) 100%),
-    url("assets/fondo-tela-continuo.jpg") center 54% / cover no-repeat !important;
+    url("assets/fondo-tela-continuo.webp") center 54% / cover no-repeat !important;
 }
 .closing > * { position: relative; z-index: 1; }
 .closing-script {
@@ -3416,3 +3416,20 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
   text-align: center;
 }
 .family-personal-mode-note[hidden] { display:none !important; }
+
+/* OPTIMIZACIÓN NOV 2026: menos capas permanentes y composición más ligera en móviles. */
+.hero-photo { will-change: auto; }
+.petal { will-change: auto; }
+@media (max-width: 700px) {
+  .floral,
+  .family-heading-icon,
+  .xv-coming-section .prexv-coming-plaque,
+  .gift-urn { filter: none !important; }
+  .invitation { box-shadow: none; }
+}
+.page-hidden .hero-photo { animation-play-state: paused !important; }
+.page-hidden .petal { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-photo, .petal, .intro-prompt-arrow { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
