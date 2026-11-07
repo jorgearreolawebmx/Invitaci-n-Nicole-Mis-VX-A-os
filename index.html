@@ -473,13 +473,24 @@
             <p id="familyPublicUrlError" class="family-admin-feedback" role="alert" hidden></p>
 
             <section class="preset-family-section" aria-labelledby="presetFamilyLinksTitle">
-              <div class="preset-family-heading">
-                <p class="eyebrow">LISTOS PARA COMPARTIR</p>
-                <h3 id="presetFamilyLinksTitle">Familias registradas</h3>
-                <p>Los enlaces se preparan automáticamente con la dirección pública de esta invitación.</p>
-              </div>
-              <div id="predefinedFamilyLinks" class="predefined-family-links" aria-live="polite"></div>
-              <p id="predefinedFamilyLinksFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
+              <details id="registeredFamilyDropdown" class="registered-family-dropdown" open>
+                <summary class="registered-family-dropdown-summary">
+                  <span class="registered-family-summary-copy">
+                    <span class="registered-family-summary-eyebrow">ENLACES LISTOS PARA COMPARTIR</span>
+                    <strong id="presetFamilyLinksTitle">Links generados por familia</strong>
+                    <small>Abre esta lista para copiar cada invitación.</small>
+                  </span>
+                  <span id="registeredFamilyCount" class="registered-family-count">12 FAMILIAS</span>
+                  <span class="registered-family-chevron" aria-hidden="true">⌄</span>
+                </summary>
+                <div class="registered-family-dropdown-body">
+                  <div class="preset-family-heading">
+                    <p>Estas 12 familias ya están registradas. Cada enlace incluye su nombre y, cuando corresponde, su cantidad de pases.</p>
+                  </div>
+                  <div id="predefinedFamilyLinks" class="predefined-family-links" aria-live="polite"></div>
+                  <p id="predefinedFamilyLinksFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
+                </div>
+              </details>
             </section>
 
             <p class="family-admin-title family-admin-create-title">Agregar otra invitación</p>

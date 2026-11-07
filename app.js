@@ -1001,36 +1001,11 @@
     }
   }
 
-  if (familyAdminToggle && familyAdminPanel) {
-    familyAdminToggle.addEventListener('click', () => {
-      const willOpen = familyAdminPanel.hidden;
-      familyAdminPanel.hidden = !willOpen;
-      familyAdminToggle.setAttribute('aria-expanded', String(willOpen));
-      if (willOpen && familyPasswordStep && !familyPasswordStep.hidden) {
-        window.setTimeout(() => familyAdminPassword?.focus({ preventScroll: true }), 80);
-      }
-    });
-  }
-
-  if (familyPasswordForm && familyAdminPassword && familyGeneratorStep && familyPasswordStep) {
-    familyPasswordForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (familyAdminPassword.value === FAMILY_LINK_ACCESS_CODE) {
-        familyPasswordError.hidden = true;
-        familyPasswordStep.hidden = true;
-        familyGeneratorStep.hidden = false;
-        window.setTimeout(() => familyNameInput?.focus({ preventScroll: true }), 80);
-      } else {
-        familyPasswordError.hidden = false;
-        familyAdminPassword.select();
-      }
-    });
-  }
-
-  const familyPassCountInput = document.getElementById('familyPassCountInput');
+    const familyPassCountInput = document.getElementById('familyPassCountInput');
   const familyPassCountWrap = document.getElementById('familyPassCountWrap');
   const predefinedFamilyLinks = document.getElementById('predefinedFamilyLinks');
   const predefinedFamilyLinksFeedback = document.getElementById('predefinedFamilyLinksFeedback');
+  const registeredFamilyCount = document.getElementById('registeredFamilyCount');
   const EXTRA_FAMILY_LINKS_STORAGE_KEY = 'nicoleXvExtraFamilyLinks_v1';
 
   // Familias que la familia organizadora indicó para quedar precargadas en el panel.
@@ -1150,9 +1125,11 @@
     if (Number.isInteger(passes) && passes > 0 && passes <= 30) {
       const badgeWrap = document.createElement('span');
       badgeWrap.className = 'registered-pass-badge';
+      badgeWrap.setAttribute('role', 'img');
+      badgeWrap.setAttribute('aria-label', `Pases asignados: ${passes}`);
       const badgeImage = document.createElement('img');
       badgeImage.src = 'assets/pase-cantidad.png';
-      badgeImage.alt = 'Pases';
+      badgeImage.alt = '';
       const badgeNumber = document.createElement('b');
       badgeNumber.textContent = String(passes);
       badgeWrap.append(badgeImage, badgeNumber);
@@ -1208,6 +1185,10 @@
     const extras = readExtraFamilyLinks();
     PRESET_FAMILIES.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, true)));
     extras.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, false)));
+    if (registeredFamilyCount) {
+      const total = PRESET_FAMILIES.length + extras.length;
+      registeredFamilyCount.textContent = `${total} ${total === 1 ? 'FAMILIA' : 'FAMILIAS'}`;
+    }
     if (predefinedFamilyLinksFeedback) {
       predefinedFamilyLinksFeedback.textContent = needsPublicBaseUrl && !getInvitationBaseUrl()
         ? 'Pega la dirección HTTPS de GitHub Pages arriba para activar los enlaces y sus botones de copia.'

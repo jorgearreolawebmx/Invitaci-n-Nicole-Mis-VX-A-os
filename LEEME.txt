@@ -254,3 +254,13 @@ ACTUALIZACIÓN: PANEL DE FAMILIAS Y PASES (07-11-2026)
 - El panel sigue siendo local y no usa Google Apps Script ni base de datos. Los enlaces precargados quedan definidos en el código; las familias adicionales se guardan solo en el navegador que las agregó.
 - Se reemplazaron los medallones del protocolo por los diez iconos actualizados proporcionados: iglesia, invitados, corona, vals, brindis, cena, vestido, pastel, destellos y música.
 - Se reorganizó el bloque de brindis para mostrar el texto introductorio y los nombres de Christian Edsson Barragán Corona y Brenda Prissyla Barragán Corona en dos renglones legibles bajo el icono.
+
+
+ACTUALIZACIÓN DEL PANEL ADMINISTRATIVO · 07 NOV 2026
+- Se corrigió un problema de doble evento en el botón LINK PERSONALIZADO que podía impedir abrir el panel.
+- Al entrar con la clave 12345 aparece la lista desplegable "Links generados por familia".
+- Se precargan las 12 familias solicitadas, cada una con su URL individual y botón COPIAR LINK.
+- Las familias Olmos Prado (2), Olmos Roa (6), María de Lourdes Roa Morales (2) y Torres Olivos (2) muestran el distintivo PASES con el número superpuesto.
+- El emblema PASES se actualizó con el PNG proporcionado y se optimizó para web.
+- En GitHub Pages, los enlaces usan automáticamente la URL pública actual. Al abrir index.html localmente, pega una vez la URL HTTPS de GitHub Pages en el campo solicitado para habilitar los botones de copia.
+- Las familias adicionales que se agreguen se conservan en el almacenamiento local del navegador administrativo.
