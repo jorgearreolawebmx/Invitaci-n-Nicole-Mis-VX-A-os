@@ -202,3 +202,28 @@ ACTUALIZACION DE INTERFAZ
 - Las animaciones de revelado se repiten al entrar en pantalla, tanto al bajar como al subir, porque el observador reinicia el estado al salir del area visible.
 
 Actualización de galería Pre Quince: la placa dorada “PRÓXIMAMENTE” aparece como encabezado independiente entre el título y el carrusel. Los 15 espacios de fotografía quedan limpios y sin una banda superpuesta en medio.
+
+
+ACTUALIZACIÓN: GALERÍA DE INFANCIA Y OPTIMIZACIÓN
+-------------------------------------------------
+- La galería de infancia ahora muestra las 13 fotografías nuevas en el orden 001 a 013.
+- Se conservan al final las dos fotografías de gimnasia que ya estaban en la galería.
+- Las 15 fotografías están optimizadas en WebP dentro de assets/infancia/ para reducir carga y memoria.
+- El carrusel crea los indicadores automáticamente, conserva el bucle, flechas, gesto táctil y visor ampliado.
+- Las imágenes cargan de forma diferida; se prioriza la fotografía activa y sus vecinas.
+- El zoom de la miniatura activa se ejecuta solo cuando la galería está visible.
+
+ACTUALIZACIÓN: NOMBRES DE PAPÁS Y PADRINOS
+-----------------------------------------
+- Se retiraron los cuatro círculos/espacios de fotografía.
+- Solo aparecen los nombres completos de papás y padrinos, con tipografía serif azul marino, separadores champagne y composición vertical.
+
+OPTIMIZACIÓN DE MOVIMIENTO
+--------------------------
+- Se redujeron los pétalos decorativos simultáneos de 13 a 8 y se pausaron cuando la pestaña queda en segundo plano.
+- Se retiraron sombras de filtro de los pétalos y el will-change permanente de todos los elementos revelados al hacer scroll.
+- En móvil se desactivaron los filtros backdrop-blur de paneles para evitar repintados costosos, manteniendo fondos opacos para conservar contraste.
+- El zoom automático de galería se pausa fuera de pantalla.
+
+- La textura secundaria se optimizó como WebP y se actualizaron las rutas CSS.
+- Las miniaturas de la galería se cargan de forma diferida; al entrar la sección se priorizan la foto actual y sus vecinas.

@@ -163,7 +163,7 @@
     layer.hidden = false;
     layer.dataset.created = 'true';
     const fragment = document.createDocumentFragment();
-    const petalCount = 13;
+    const petalCount = 8;
     const petalAssets = [
       { src: 'assets/petalo-rosa.png', widthMin: 23, widthMax: 34, ratio: 1.20 },
       { src: 'assets/petalo-marfil.png', widthMin: 29, widthMax: 42, ratio: 1.02 }
@@ -194,14 +194,20 @@
       fragment.appendChild(petal);
     }
     layer.appendChild(fragment);
+    document.addEventListener('visibilitychange', () => {
+      layer.classList.toggle('is-paused', document.hidden);
+    }, { passive: true });
   }
 
   function setupScrollReveal() {
     const selectors = [
-      '.family-section > .eyebrow', '.family-section > h2', '.family-section > .family-names', '.family-section > .thin-divider',
+      '.family-section > .eyebrow', '.family-section .family-greeting > *',
+      '.family-section .family-intro', '.family-section .family-group h2',
+      '.family-section .family-name-row', '.family-section .family-name-ornament',
+      '.family-section > .thin-divider',
       '.place-section > .eyebrow', '.place-section > h2', '.place-card',
       '.timeline-board > .eyebrow', '.timeline-board > h2', '.timeline-board > .section-intro', '.timeline-item',
-      '.gift-section > *', '.gallery-section > *', '.gallery-photo',
+      '.gift-section > *', '.gallery-section > *',
       '.coming-board > *', '.rsvp-board > *', '.closing > *'
     ];
     const targets = Array.from(document.querySelectorAll(selectors.join(',')));
@@ -544,7 +550,8 @@
   const gallerySlides = galleryTrack ? Array.from(galleryTrack.querySelectorAll('.gallery-slide')) : [];
   const galleryPrev = document.getElementById('galleryPrev');
   const galleryNext = document.getElementById('galleryNext');
-  const galleryDots = Array.from(document.querySelectorAll('.gallery-dot'));
+  const galleryDotsContainer = document.getElementById('galleryDots');
+  let galleryDots = [];
   const galleryStatus = document.getElementById('galleryStatus');
   let galleryIndex = 0;
   let galleryTimer = null;
@@ -561,10 +568,19 @@
       slide.classList.toggle('is-active', active);
       slide.setAttribute('aria-hidden', String(!active));
       const image = slide.querySelector('img');
-      if (image && active) {
-        image.style.animation = 'none';
-        void image.offsetWidth;
-        image.style.animation = '';
+      if (image) {
+        // Carga la foto activa y las vecinas; las demás permanecen diferidas.
+        const distance = Math.min(
+          Math.abs(index - galleryIndex),
+          gallerySlides.length - Math.abs(index - galleryIndex)
+        );
+        if (distance <= 1 && galleryIsVisible) image.loading = 'eager';
+        else image.loading = 'lazy';
+        if (active && galleryCarousel?.classList.contains('is-visible')) {
+          image.style.animation = 'none';
+          void image.offsetWidth;
+          image.style.animation = '';
+        }
       }
     });
     galleryDots.forEach((dot, index) => {
@@ -593,12 +609,28 @@
   }
 
   if (gallerySlides.length) {
+    if (galleryDotsContainer) {
+      const dotFragment = document.createDocumentFragment();
+      gallerySlides.forEach((slide, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'gallery-dot';
+        dot.dataset.galleryIndex = String(index);
+        dot.setAttribute('aria-label', `Mostrar fotografía ${index + 1} de ${gallerySlides.length}`);
+        dotFragment.appendChild(dot);
+      });
+      galleryDotsContainer.replaceChildren(dotFragment);
+      galleryDots = Array.from(galleryDotsContainer.querySelectorAll('.gallery-dot'));
+      galleryDotsContainer.addEventListener('click', (event) => {
+        const dot = event.target.closest('.gallery-dot');
+        if (dot && galleryDotsContainer.contains(dot)) {
+          setGallerySlide(Number(dot.dataset.galleryIndex) || 0);
+        }
+      });
+    }
     setGallerySlide(0, false);
     galleryPrev?.addEventListener('click', () => setGallerySlide(galleryIndex - 1));
     galleryNext?.addEventListener('click', () => setGallerySlide(galleryIndex + 1));
-    galleryDots.forEach((dot) => {
-      dot.addEventListener('click', () => setGallerySlide(Number(dot.dataset.galleryIndex) || 0));
-    });
 
     galleryViewport?.addEventListener('pointerdown', (event) => {
       galleryPointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
@@ -620,13 +652,28 @@
       const galleryObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           galleryIsVisible = entry.isIntersecting && entry.intersectionRatio >= 0.25;
-          if (galleryIsVisible) startGalleryAutoplay();
-          else stopGalleryAutoplay();
+          galleryCarousel.classList.toggle('is-visible', galleryIsVisible);
+          if (galleryIsVisible) {
+            gallerySlides.forEach((slide, index) => {
+              const distance = Math.min(
+                Math.abs(index - galleryIndex),
+                gallerySlides.length - Math.abs(index - galleryIndex)
+              );
+              if (distance <= 1) {
+                const image = slide.querySelector('img');
+                if (image) image.loading = 'eager';
+              }
+            });
+            startGalleryAutoplay();
+          } else {
+            stopGalleryAutoplay();
+          }
         });
       }, { threshold: [0, 0.25, 0.5] });
       galleryObserver.observe(galleryCarousel);
     } else {
       galleryIsVisible = true;
+      galleryCarousel?.classList.add('is-visible');
       startGalleryAutoplay();
     }
     document.addEventListener('visibilitychange', () => {

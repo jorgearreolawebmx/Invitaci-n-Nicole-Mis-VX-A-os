@@ -116,7 +116,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
 /* Portada interior */
 .hero {
   min-height: 980px; padding-top: 56px; padding-bottom: 88px;
-  background: linear-gradient(rgba(255,249,245,.86),rgba(255,249,245,.92)), url("assets/textura-fondo.jpg") center/cover no-repeat;
+  background: linear-gradient(rgba(255,249,245,.86),rgba(255,249,245,.92)), url("assets/textura-fondo.webp") center/cover no-repeat;
 }
 .hero-glow { position:absolute; width:360px; height:360px; left:50%; top:80px; transform:translateX(-50%); background:radial-gradient(circle,rgba(255,255,255,.85),transparent 70%); pointer-events:none; }
 .hero-kicker { position:relative; color:var(--gold); font:500 9px var(--sans); letter-spacing:.25em; }
@@ -163,7 +163,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
 .floral-family { width:175px; left:-88px; bottom:-58px; transform:rotate(18deg); opacity:.6; }
 
 /* Lugares */
-.place-section { padding-top:75px; padding-bottom:75px; background:linear-gradient(rgba(251,246,241,.95),rgba(251,246,241,.95)),url("assets/textura-fondo.jpg") center/cover; }
+.place-section { padding-top:75px; padding-bottom:75px; background:linear-gradient(rgba(251,246,241,.95),rgba(251,246,241,.95)),url("assets/textura-fondo.webp") center/cover; }
 .place-section h2 { margin-bottom:30px; }
 .place-card { position:relative; margin:0 auto 20px; max-width:390px; padding:30px 18px 29px; border:1px solid rgba(177,138,82,.55); background:rgba(255,255,255,.58); box-shadow:0 9px 28px rgba(36,35,44,.05); }
 .place-card::before { content:""; position:absolute; inset:5px; border:1px solid rgba(177,138,82,.2); pointer-events:none; }
@@ -242,7 +242,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
 .gift-section > p:last-child { max-width:330px; margin:0 auto; color:#6a6261; font:17px/1.55 var(--serif); }
 
 /* Galería */
-.gallery-section { padding-top:70px; padding-bottom:75px; background:linear-gradient(rgba(251,246,241,.91),rgba(251,246,241,.94)),url("assets/textura-fondo.jpg") center/cover; }
+.gallery-section { padding-top:70px; padding-bottom:75px; background:linear-gradient(rgba(251,246,241,.91),rgba(251,246,241,.94)),url("assets/textura-fondo.webp") center/cover; }
 .gallery-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .gallery-photo { display:block; overflow:hidden; padding:5px; border:1px solid var(--gold-light); background:white; cursor:zoom-in; }
 .gallery-photo img { display:block; width:100%; height:235px; object-fit:cover; object-position:center 24%; transition:transform .35s ease; }
@@ -388,7 +388,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
   isolation: isolate;
   overflow: hidden;
   background-color: #fbf7f3;
-  background-image: url("assets/textura-fondo.jpg");
+  background-image: url("assets/textura-fondo.webp");
   background-position: center bottom;
   background-size: 100% auto;
   background-repeat: no-repeat;
@@ -640,7 +640,6 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
   object-fit: contain;
   object-position: center;
   opacity: 0;
-  filter: drop-shadow(0 2px 4px rgba(72, 49, 54, .12));
   transform: rotate(var(--start-rotation, 0deg));
   animation: petal-float var(--fall-duration, 19s) linear var(--fall-delay, 0s) infinite;
   will-change: transform, opacity;
@@ -837,7 +836,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
   transition:
     opacity .72s ease var(--reveal-delay, 0ms),
     transform .78s cubic-bezier(.2,.7,.25,1) var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
+  /* Sin will-change permanente: el navegador administra las capas según necesidad. */
 }
 .scroll-reveal.is-revealed {
   opacity: 1;
@@ -1754,12 +1753,12 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
   object-fit: cover;
   object-position: center 24%;
   transform: scale(1);
-  will-change: transform;
 }
 .gallery-slide:first-child .gallery-image-frame img { object-position: center 24%; }
 .gallery-slide:nth-child(2) .gallery-image-frame img { object-position: 43% center; }
-.gallery-slide.is-active .gallery-image-frame img {
+.gallery-carousel.is-visible .gallery-slide.is-active .gallery-image-frame img {
   animation: gallerySlowZoom 7.2s ease-in-out infinite alternate;
+  will-change: transform;
 }
 @keyframes gallerySlowZoom {
   0% { transform: scale(1); }
@@ -1784,9 +1783,11 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 .gallery-arrow:active { transform: scale(.94); }
 .gallery-dots {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  width: min(100%, 275px);
   margin: 16px auto 7px;
 }
 .gallery-dot {
@@ -2642,3 +2643,54 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
     margin-bottom: 13px;
   }
 }
+
+
+
+/* Familia: nombres como protagonistas, sin marcos ni espacios reservados para retratos. */
+.family-name-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 350px);
+  margin: 0 auto;
+}
+.family-name-row {
+  width: 100%;
+  margin: 0;
+  padding: 11px 10px 9px;
+  color: #172b4b;
+  font: 600 clamp(21px, 5.4vw, 25px)/1.18 var(--serif);
+  letter-spacing: .015em;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9);
+  border-bottom: 1px solid rgba(177,138,82,.42);
+  background: linear-gradient(90deg, transparent, rgba(255,253,250,.38) 16%, rgba(255,253,250,.38) 84%, transparent);
+}
+.family-name-ornament {
+  display: block;
+  margin: -2px 0;
+  color: #b9945c;
+  font-size: 12px;
+  line-height: 1;
+}
+.family-person,
+.family-portraits,
+.family-photo-placeholder { display: none !important; }
+@media (max-width: 380px) {
+  .family-name-row { font-size: 20px; }
+}
+
+
+/* Rendimiento móvil: conservar textura y contraste sin filtros de desenfoque costosos. */
+@media (max-width: 700px) {
+  .place-card,
+  .gift-section {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .place-card { background: rgba(255,253,250,.92) !important; }
+  .gift-section { background: rgba(255,253,250,.94) !important; }
+}
+.petal-layer.is-paused .petal { animation-play-state: paused !important; }
