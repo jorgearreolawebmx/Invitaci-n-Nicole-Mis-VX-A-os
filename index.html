@@ -66,6 +66,10 @@
         <p id="familyGreetingEyebrow" class="eyebrow">CON MUCHO CARIÑO, INVITAMOS A</p>
         <img id="personalPassBadge" class="personal-pass-badge" src="assets/pase-personal.png" alt="Pase personal" hidden>
         <h3 id="familyGreetingName"></h3>
+        <div id="familyPassCountBadge" class="family-pass-count-badge" hidden aria-label="Cantidad de pases asignados">
+          <img src="assets/pase-cantidad.png" alt="Pases asignados">
+          <strong id="familyPassCountValue"></strong>
+        </div>
         <p id="familyGreetingCopy" class="family-greeting-copy">Nos encantará compartir esta celebración tan especial con ustedes.</p>
         <div class="thin-divider" aria-hidden="true"></div>
       </div>
@@ -149,10 +153,10 @@
         </article>
         <article class="timeline-item side-right">
           <div class="timeline-content">
-            <time class="timeline-time">17:00</time>
+            <time class="timeline-time">19:00</time>
             <div class="timeline-copy">
               <strong>Recepción de invitados</strong>
-              <small>Comenzamos a reunirnos.</small>
+              <small>Bienvenida a nuestros invitados.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -161,46 +165,48 @@
         </article>
         <article class="timeline-item side-left">
           <div class="timeline-content">
-            <time class="timeline-time">19:00</time>
-            <div class="timeline-copy">
-              <strong>Recepción en el salón</strong>
-              <small>Salón Cascadas · Hotel Misión Xalapa.</small>
-            </div>
-          </div>
-          <span class="timeline-marker" aria-hidden="true">
-            <img src="assets/program-icons/icon-brindis.png" alt="">
-          </span>
-        </article>
-        <article class="timeline-item side-right">
-          <div class="timeline-content">
-            
+            <time class="timeline-time">19:30</time>
             <div class="timeline-copy">
               <strong>Entrada de Nicole</strong>
-              
+              <small>Comienza uno de los momentos más esperados.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
             <img src="assets/program-icons/icon-corona.png" alt="">
           </span>
         </article>
-        <article class="timeline-item side-left">
+        <article class="timeline-item side-right">
           <div class="timeline-content">
-            
             <div class="timeline-copy">
-              <strong>Vals principal y vals familiar</strong>
-              
+              <strong>Vals principal</strong>
+              <small>Un momento especial para celebrar esta nueva etapa.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
             <img src="assets/program-icons/icon-vals-pareja.png" alt="">
           </span>
         </article>
-        <article class="timeline-item side-right">
+        <article class="timeline-item side-left">
           <div class="timeline-content">
-            
+            <div class="timeline-copy">
+              <strong>Vals familiar</strong>
+              <small>Un vals para compartir con su familia.</small>
+            </div>
+          </div>
+          <span class="timeline-marker" aria-hidden="true">
+            <img src="assets/program-icons/icon-vals-pareja.png" alt="">
+          </span>
+        </article>
+        <article class="timeline-item side-right timeline-item-wide timeline-item-brindis">
+          <div class="timeline-content">
             <div class="timeline-copy">
               <strong>Brindis</strong>
-              <small>A cargo del Ing. Christian Barragán Corona.</small>
+              <small>Un brindis a cargo de sus tíos</small>
+              <div class="timeline-hosts">
+                <span>Christian Edsson Barragán Corona</span>
+                <i>&amp;</i>
+                <span>Brenda Prissyla Barragán Corona</span>
+              </div>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -212,7 +218,6 @@
             <time class="timeline-time">20:30</time>
             <div class="timeline-copy">
               <strong>Cena</strong>
-              
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -221,22 +226,22 @@
         </article>
         <article class="timeline-item side-right">
           <div class="timeline-content">
-            
+            <time class="timeline-time">21:30</time>
             <div class="timeline-copy">
               <strong>Vals de la muñeca</strong>
-              
+              <small>En compañía de su prima Ivana Hernández Dorantes.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
             <img src="assets/program-icons/icon-vestido.png" alt="">
           </span>
         </article>
-        <article class="timeline-item side-left">
+        <article class="timeline-item side-left timeline-item-wide">
           <div class="timeline-content">
-            
+            <time class="timeline-time">21:35</time>
             <div class="timeline-copy">
-              <strong>Partida del pastel</strong>
-              
+              <strong>Partida del pastel y lluvia de sobres</strong>
+              <small>Compartiremos este momento especial.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -245,10 +250,9 @@
         </article>
         <article class="timeline-item side-right">
           <div class="timeline-content">
-            
+            <time class="timeline-time">21:40</time>
             <div class="timeline-copy">
               <strong>Vals sorpresa con chambelanes</strong>
-              
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -257,10 +261,10 @@
         </article>
         <article class="timeline-item side-left">
           <div class="timeline-content">
-            
+            <time class="timeline-time">21:45</time>
             <div class="timeline-copy">
               <strong>Apertura de pista con DJ</strong>
-              <small>¡Que siga la celebración!</small>
+              <small>Continúa la fiesta y música con DJ.</small>
             </div>
           </div>
           <span class="timeline-marker" aria-hidden="true">
@@ -460,7 +464,25 @@
             </form>
           </div>
           <div id="familyGeneratorStep" hidden>
-            <p class="family-admin-title">Crear invitación personalizada</p>
+            <p class="family-admin-title">Administración de invitaciones</p>
+            <div id="familyPublicUrlWrap" class="family-public-url-wrap" hidden>
+              <label for="familyPublicUrl">Dirección pública de la invitación</label>
+              <input id="familyPublicUrl" name="publicUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://usuario.github.io/repositorio/">
+              <p class="family-public-url-help">Como abriste el archivo desde tu computadora, pega aquí la URL HTTPS de GitHub Pages. Se utilizará para preparar todos los enlaces de esta lista.</p>
+            </div>
+            <p id="familyPublicUrlError" class="family-admin-feedback" role="alert" hidden></p>
+
+            <section class="preset-family-section" aria-labelledby="presetFamilyLinksTitle">
+              <div class="preset-family-heading">
+                <p class="eyebrow">LISTOS PARA COMPARTIR</p>
+                <h3 id="presetFamilyLinksTitle">Familias registradas</h3>
+                <p>Los enlaces se preparan automáticamente con la dirección pública de esta invitación.</p>
+              </div>
+              <div id="predefinedFamilyLinks" class="predefined-family-links" aria-live="polite"></div>
+              <p id="predefinedFamilyLinksFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
+            </section>
+
+            <p class="family-admin-title family-admin-create-title">Agregar otra invitación</p>
             <form id="familyLinkForm" class="family-admin-form">
               <label for="invitationLinkType">Tipo de invitación</label>
               <select id="invitationLinkType" name="invitationType" class="family-admin-select">
@@ -469,12 +491,10 @@
               </select>
               <label id="familyNameLabel" for="familyNameInput">Nombre de la familia</label>
               <input id="familyNameInput" name="family" type="text" maxlength="70" autocomplete="off" placeholder="Ej. Familia Arreola" required>
-              <div id="familyPublicUrlWrap" class="family-public-url-wrap" hidden>
-                <label for="familyPublicUrl">Dirección pública de la invitación</label>
-                <input id="familyPublicUrl" name="publicUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://usuario.github.io/repositorio/">
-                <p class="family-public-url-help">Estás abriendo el archivo desde tu computadora. Pega aquí la URL de GitHub Pages para crear un enlace que sí puedan abrir por WhatsApp. Puedes encontrarla en la sección Settings → Pages de tu repositorio.</p>
+              <div id="familyPassCountWrap" class="family-pass-input-wrap">
+                <label for="familyPassCountInput">Cantidad de pases (opcional)</label>
+                <input id="familyPassCountInput" name="passes" type="number" min="1" max="30" step="1" inputmode="numeric" placeholder="Ej. 2">
               </div>
-              <p id="familyPublicUrlError" class="family-admin-feedback" role="alert" hidden></p>
               <button class="family-admin-primary" type="submit">GENERAR LINK</button>
             </form>
             <div id="familyLinkResult" class="family-link-result" hidden>

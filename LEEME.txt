@@ -242,3 +242,15 @@ ACTUALIZACIÓN DE CARRUSELES (07-11-2026)
 - Galería de infancia: carrusel tipo mazo 3D, tarjeta central y tarjetas laterales en profundidad, reproducción automática en bucle, flechas y gesto táctil.
 - Galería Pre Quince: 15 tarjetas con el arte COMING SOON, usando el mismo carrusel tipo mazo 3D y navegación en bucle.
 - Ambas galerías pausan el autoplay cuando salen del área visible o la pestaña queda en segundo plano.
+
+
+ACTUALIZACIÓN: PANEL DE FAMILIAS Y PASES (07-11-2026)
+---------------------------------------------------
+- El panel administrativo incluye 12 familias precargadas para copiar sus enlaces personalizados.
+- Los enlaces de las familias se construyen automáticamente desde la URL pública HTTPS de GitHub Pages. Si se abre index.html desde file://, pega una sola vez la URL pública en el campo solicitado.
+- Familias incluidas: Familia Olmos Dorantes; Familia Roa Ficache; Sr. Humberto Corona Padilla y Esposa; Sra. Zoila Corona Padilla; Familia Olmos García; Mtro. Gandhi Olmos García y Familia; Familia Olmos Prado (2 pases); Familia Olmos Roa (6 pases); Sra. María Luisa Ficache Martínez; Mtra. María de Lourdes Roa Morales (2 pases); Familia Torres Olivos (2 pases); Itzel Roa Franco e Hijo.
+- Para las cuatro familias con pases explícitos, el enlace incluye el parámetro ?pases= y la invitación muestra la insignia PASES con su número. No se asignaron cantidades a las familias cuyo número no fue indicado.
+- Se pueden agregar nuevas invitaciones familiares con nombre y número de pases opcional. Las nuevas familias se guardan en localStorage del navegador administrativo y aparecen en la misma lista con botón COPIAR LINK.
+- El panel sigue siendo local y no usa Google Apps Script ni base de datos. Los enlaces precargados quedan definidos en el código; las familias adicionales se guardan solo en el navegador que las agregó.
+- Se reemplazaron los medallones del protocolo por los diez iconos actualizados proporcionados: iglesia, invitados, corona, vals, brindis, cena, vestido, pastel, destellos y música.
+- Se reorganizó el bloque de brindis para mostrar el texto introductorio y los nombres de Christian Edsson Barragán Corona y Brenda Prissyla Barragán Corona en dos renglones legibles bajo el icono.

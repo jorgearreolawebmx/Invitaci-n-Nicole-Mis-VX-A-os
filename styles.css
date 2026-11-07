@@ -3114,3 +3114,217 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 
 .prexv-photo-slot::after { content: none !important; }
 .prexv-photo-slot img { pointer-events: none; }
+
+
+/* PROGRAMA ACTUALIZADO: brindis extenso y evento combinado de pastel/lluvia de sobres */
+.timeline-section .timeline-item-wide {
+  grid-template-rows: 58px auto !important;
+  align-items: start !important;
+  min-height: 0 !important;
+  padding-top: 12px !important;
+  padding-bottom: 15px !important;
+  row-gap: 4px !important;
+}
+.timeline-section .timeline-item-wide .timeline-marker {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  justify-self: center !important;
+}
+.timeline-section .timeline-item-wide .timeline-content {
+  grid-column: 1 / 4 !important;
+  grid-row: 2 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 10px !important;
+  text-align: center !important;
+}
+.timeline-section .timeline-item-wide .timeline-copy small {
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+.timeline-section .timeline-item-wide .timeline-copy strong {
+  font-size: clamp(15px, 4vw, 18px) !important;
+}
+.timeline-section .timeline-item-wide .timeline-marker img[src$="icon-pastel-sobres.svg"] {
+  filter: drop-shadow(0 2px 3px rgba(23,43,75,.13)) !important;
+}
+@media (max-width: 390px) {
+  .timeline-section .timeline-item-wide { grid-template-rows: 52px auto !important; }
+  .timeline-section .timeline-item-wide .timeline-copy small { font-size: 11px !important; }
+}
+
+
+/* NOV 07 2026 — enlaces familiares precargados y control de pases. */
+.family-pass-count-badge {
+  position: relative;
+  width: min(72%, 228px);
+  margin: 7px auto 5px;
+  line-height: 0;
+  filter: drop-shadow(0 4px 8px rgba(17,35,63,.16));
+}
+.family-pass-count-badge[hidden] { display: none !important; }
+.family-pass-count-badge img { display:block; width:100%; height:auto; }
+.family-pass-count-badge strong {
+  position:absolute;
+  left:50%; top:69%; transform:translate(-50%,-50%);
+  color:#182b4b; font:700 clamp(19px,5vw,27px)/1 var(--serif);
+  text-shadow:0 1px 0 rgba(255,255,255,.85);
+}
+.family-pass-input-wrap { display:grid; gap:7px; }
+.family-pass-input-wrap[hidden] { display:none !important; }
+.preset-family-section {
+  margin: 8px 0 22px;
+  padding: 14px 10px 12px;
+  border: 1px solid rgba(216,189,139,.34);
+  border-radius: 9px;
+  background: rgba(255,255,255,.035);
+}
+.preset-family-heading { text-align:center; margin:0 0 12px; }
+.preset-family-heading .eyebrow { margin:0 0 5px; color:#ddbd82; font:600 8px/1.4 var(--sans); letter-spacing:.17em; }
+.preset-family-heading h3 { margin:0 0 5px; color:#fff1dc; font:500 22px/1.1 var(--serif); }
+.preset-family-heading p { margin:0 auto; max-width:300px; color:rgba(241,228,208,.72); font:10px/1.45 var(--sans); }
+.predefined-family-links { display:grid; gap:9px; }
+.registered-family-card {
+  min-width:0; padding:10px 9px 9px;
+  border:1px solid rgba(218,188,132,.3); border-radius:7px;
+  background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+}
+.registered-family-main { display:flex; align-items:center; justify-content:space-between; gap:7px; margin-bottom:7px; }
+.registered-family-name { flex:1; min-width:0; color:#fff1de; font:500 14px/1.25 var(--serif); overflow-wrap:anywhere; }
+.registered-pass-badge { position:relative; display:block; flex:0 0 76px; width:76px; line-height:0; }
+.registered-pass-badge img { display:block; width:100%; height:auto; }
+.registered-pass-badge b { position:absolute; left:50%; top:69%; transform:translate(-50%,-50%); color:#172744; font:700 15px/1 var(--serif); }
+.registered-family-url { display:block; width:100%; min-height:31px; padding:6px 7px; border:1px solid rgba(216,189,139,.25); border-radius:4px; background:rgba(255,255,255,.92); color:#263753; font:10px/1.2 var(--sans); }
+.registered-family-actions { display:flex; align-items:center; gap:8px; margin-top:7px; flex-wrap:wrap; }
+.registered-copy-button { flex:0 0 auto; min-height:34px; padding:8px 11px; font-size:8px; }
+.registered-copy-button:disabled { opacity:.4; cursor:not-allowed; }
+.registered-family-feedback { color:#ebd4a8; font:10px/1.3 var(--sans); }
+.registered-remove-button { width:auto; min-height:30px; margin:0 0 0 auto; padding:6px 8px; font-size:7px; }
+.family-admin-create-title { margin-top:23px; padding-top:17px; border-top:1px solid rgba(216,189,139,.25); }
+
+/* Brindis: responsables en dos líneas ordenadas, legibles y centradas bajo el medallón. */
+.timeline-section .timeline-item-brindis { min-height: 142px !important; padding-top: 5px !important; padding-bottom: 18px !important; }
+.timeline-section .timeline-item-brindis .timeline-copy small { margin: 1px auto 6px !important; color:#e1c58e !important; font:500 10px/1.35 var(--sans) !important; letter-spacing:.06em; }
+.timeline-section .timeline-hosts { display:grid; justify-items:center; gap:2px; max-width:280px; margin:0 auto; }
+.timeline-section .timeline-hosts span { color:#fff0dc; font:500 clamp(13px,3.65vw,15px)/1.22 var(--serif); text-wrap:balance; }
+.timeline-section .timeline-hosts i { color:#d9b675; font:italic 12px/1 var(--serif); }
+@media(max-width:390px) {
+  .registered-family-name { font-size:13px; }
+  .registered-pass-badge { flex-basis:68px; width:68px; }
+  .timeline-section .timeline-item-brindis { min-height:136px !important; }
+  .timeline-section .timeline-hosts span { font-size:12.5px; }
+}
+
+
+/* CORRECCIÓN NOV 07 — la línea de la cronología se interrumpe en los eventos anchos.
+   En vez de dibujar una línea continua detrás de todo el contenido, cada elemento
+   dibuja únicamente los tramos que conectan con su medallón. */
+.timeline-section .timeline::before {
+  content: none !important;
+  display: none !important;
+}
+
+.timeline-section .timeline-item {
+  --timeline-marker-size: 58px;
+  position: relative !important;
+  isolation: isolate;
+}
+
+.timeline-section .timeline-item::before,
+.timeline-section .timeline-item::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 50% !important;
+  width: 1.5px !important;
+  height: calc((100% - var(--timeline-marker-size)) / 2) !important;
+  min-height: 0 !important;
+  transform: translateX(-50%) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(
+    to bottom,
+    rgba(190,145,76,.12),
+    #c49a58 32%,
+    #d6b675 68%,
+    rgba(190,145,76,.12)
+  ) !important;
+  box-shadow: 0 0 4px rgba(181,139,75,.12) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.timeline-section .timeline-item::before {
+  top: 0 !important;
+  bottom: auto !important;
+}
+
+.timeline-section .timeline-item::after {
+  bottom: 0 !important;
+  top: auto !important;
+}
+
+/* Eventos con texto centrado y extendido: la línea llega al medallón,
+   se suspende durante todo el bloque de texto y reaparece en el siguiente evento. */
+.timeline-section .timeline-item-wide::before {
+  top: 0 !important;
+  bottom: auto !important;
+  height: 12px !important;
+}
+
+.timeline-section .timeline-item-wide::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* El contenido queda por encima de los conectores, sin crear una tarjeta de fondo. */
+.timeline-section .timeline-item .timeline-content {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.timeline-section .timeline-item .timeline-marker {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+/* Brindis: alto contraste sobre la tela y nombres bien separados de la línea central. */
+.timeline-section .timeline-item-brindis .timeline-copy strong {
+  color: #172b4b !important;
+}
+
+.timeline-section .timeline-item-brindis .timeline-copy small {
+  color: #a8793b !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+  letter-spacing: .025em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.75) !important;
+}
+
+.timeline-section .timeline-item-brindis .timeline-hosts {
+  position: relative !important;
+  z-index: 2 !important;
+  gap: 3px !important;
+  padding: 2px 0 !important;
+}
+
+.timeline-section .timeline-item-brindis .timeline-hosts span {
+  color: #263b5d !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.78) !important;
+}
+
+.timeline-section .timeline-item-brindis .timeline-hosts i {
+  color: #b58a4e !important;
+}
+
+@media (max-width: 390px) {
+  .timeline-section .timeline-item {
+    --timeline-marker-size: 50px;
+  }
+  .timeline-section .timeline-item-wide::before {
+    height: 12px !important;
+  }
+}

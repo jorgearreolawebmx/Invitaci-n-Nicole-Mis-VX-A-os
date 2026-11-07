@@ -447,7 +447,9 @@
       const family = params.get('familia');
       const invitee = params.get('invitado');
       const familyLine = family ? `\nInvitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? `\nPase personal para: ${invitee}.` : '');
-      const message = `Hola Sheylla, soy ${guestName}.${familyLine} Confirmo mi asistencia a los XV años de Nicole Roa Barragán, el 21 de noviembre de 2026. ¡Muchas gracias por la invitación!`;
+      const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
+      const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? `\nPases asignados: ${assignedPasses}.` : '';
+      const message = `Hola Sheylla, soy ${guestName}.${familyLine}${passesLine} Confirmo mi asistencia a los XV años de Nicole Roa Barragán, el 21 de noviembre de 2026. ¡Muchas gracias por la invitación!`;
       const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
       const link = document.createElement('a');
       link.href = url;
@@ -465,7 +467,9 @@
       const family = params.get('familia');
       const invitee = params.get('invitado');
       const familyLine = family ? ` Invitación dirigida a: ${family}.` : (params.get('pase') === 'personal' && invitee ? ` Pase personal para: ${invitee}.` : '');
-      const message = `Hola Sheylla.${familyLine} Muchas gracias por la invitación a los XV años de Nicole. Lamentablemente no podré asistir.`;
+      const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
+      const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? ` Pases asignados: ${assignedPasses}.` : '';
+      const message = `Hola Sheylla.${familyLine}${passesLine} Muchas gracias por la invitación a los XV años de Nicole. Lamentablemente no podré asistir.`;
       const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
       const link = document.createElement('a');
       link.href = url;
@@ -920,11 +924,14 @@
   const rawFamilyName = familyParams.get('familia');
   const rawPassType = familyParams.get('pase');
   const rawInviteeName = familyParams.get('invitado');
+  const rawPassCount = Number.parseInt(familyParams.get('pases') || '', 10);
   const familyGreeting = document.getElementById('familyGreeting');
   const familyGreetingEyebrow = document.getElementById('familyGreetingEyebrow');
   const familyGreetingName = document.getElementById('familyGreetingName');
   const familyGreetingCopy = document.getElementById('familyGreetingCopy');
   const personalPassBadge = document.getElementById('personalPassBadge');
+  const familyPassCountBadge = document.getElementById('familyPassCountBadge');
+  const familyPassCountValue = document.getElementById('familyPassCountValue');
   const cleanInvitationName = (value) => String(value || '')
     .replace(/[<>]/g, '')
     .replace(/[\u0000-\u001F\u007F]/g, '')
@@ -945,6 +952,10 @@
     const safeFamilyName = cleanInvitationName(rawFamilyName);
     if (safeFamilyName) {
       familyGreetingName.textContent = safeFamilyName;
+      if (Number.isInteger(rawPassCount) && rawPassCount > 0 && rawPassCount <= 30 && familyPassCountBadge && familyPassCountValue) {
+        familyPassCountValue.textContent = String(rawPassCount);
+        familyPassCountBadge.hidden = false;
+      }
       familyGreeting.hidden = false;
       document.title = `${safeFamilyName} · Invitación a los XV años de Nicole`;
     }
@@ -1016,108 +1027,87 @@
     });
   }
 
-  function updateInvitationLinkTypeUI() {
-    const personalMode = invitationLinkType?.value === 'personal';
-    if (familyNameLabel) familyNameLabel.textContent = personalMode ? 'Nombre del invitado' : 'Nombre de la familia';
-    if (familyNameInput) familyNameInput.placeholder = personalMode ? 'Ej. Jorge Isaac Arreola' : 'Ej. Familia Arreola';
-    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace de pase personal' : 'Enlace de invitación familiar';
-    const title = familyGeneratorStep?.querySelector('.family-admin-title');
-    if (title) title.textContent = personalMode ? 'Crear pase personal' : 'Crear invitación por familia';
-  }
-  invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI);
-  updateInvitationLinkTypeUI();
+  const familyPassCountInput = document.getElementById('familyPassCountInput');
+  const familyPassCountWrap = document.getElementById('familyPassCountWrap');
+  const predefinedFamilyLinks = document.getElementById('predefinedFamilyLinks');
+  const predefinedFamilyLinksFeedback = document.getElementById('predefinedFamilyLinksFeedback');
+  const EXTRA_FAMILY_LINKS_STORAGE_KEY = 'nicoleXvExtraFamilyLinks_v1';
 
-  if (familyLinkForm && familyNameInput && familyGeneratedLink && familyLinkResult) {
-    familyLinkForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const familyName = familyNameInput.value
-        .replace(/[<>]/g, '')
-        .replace(/[\u0000-\u001F\u007F]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 70);
+  // Familias que la familia organizadora indicó para quedar precargadas en el panel.
+  // Solo se asignan cantidades cuando el mensaje original especificó explícitamente los pases.
+  const PRESET_FAMILIES = [
+    { name: 'Familia Olmos Dorantes' },
+    { name: 'Familia Roa Ficache' },
+    { name: 'Sr. Humberto Corona Padilla y Esposa' },
+    { name: 'Sra. Zoila Corona Padilla' },
+    { name: 'Familia Olmos García' },
+    { name: 'Mtro. Gandhi Olmos García y Familia' },
+    { name: 'Familia Olmos Prado', passes: 2 },
+    { name: 'Familia Olmos Roa', passes: 6 },
+    { name: 'Sra. María Luisa Ficache Martínez' },
+    { name: 'Mtra. María de Lourdes Roa Morales', passes: 2 },
+    { name: 'Familia Torres Olivos', passes: 2 },
+    { name: 'Itzel Roa Franco e Hijo' }
+  ];
 
-      if (!familyName) {
-        familyNameInput.focus();
-        return;
-      }
-
-      let personalizedUrl;
-
-      if (needsPublicBaseUrl) {
-        // Nunca crear ni copiar enlaces file:///C:/...: solo funcionan en esta computadora.
-        const publicBaseText = familyPublicUrlInput?.value.trim() || '';
-        if (!publicBaseText) {
-          if (familyPublicUrlError) {
-            familyPublicUrlError.textContent = 'Primero pega la dirección pública de GitHub Pages. Los enlaces file:/// o localhost no se pueden compartir.';
-            familyPublicUrlError.hidden = false;
-          }
-          familyPublicUrlInput?.focus();
-          return;
-        }
-
-        try {
-          const publicBase = new URL(publicBaseText);
-          if (publicBase.protocol !== 'https:') {
-            throw new Error('La dirección debe comenzar con https://');
-          }
-          publicBase.search = '';
-          publicBase.hash = '';
-          publicBase.pathname = publicBase.pathname.replace(/index\.html?$/i, '');
-          if (!publicBase.pathname.endsWith('/')) publicBase.pathname += '/';
-          personalizedUrl = publicBase;
-          try { localStorage.setItem(FAMILY_PUBLIC_URL_STORAGE_KEY, publicBase.href); } catch (_) {}
-        } catch (error) {
-          if (familyPublicUrlError) {
-            familyPublicUrlError.textContent = 'La dirección no parece válida. Usa la URL HTTPS que muestra GitHub Pages.';
-            familyPublicUrlError.hidden = false;
-          }
-          familyPublicUrlInput?.focus();
-          return;
-        }
-      } else {
-        // Cuando la invitación ya está publicada, toma su dirección HTTPS real.
-        personalizedUrl = new URL(window.location.href);
-        personalizedUrl.search = '';
-        personalizedUrl.hash = '';
-      }
-
-      if (familyPublicUrlError) familyPublicUrlError.hidden = true;
-      personalizedUrl.searchParams.delete('preview');
-      personalizedUrl.searchParams.delete('familia');
-      personalizedUrl.searchParams.delete('pase');
-      personalizedUrl.searchParams.delete('invitado');
-      if (invitationLinkType?.value === 'personal') {
-        personalizedUrl.searchParams.set('pase', 'personal');
-        personalizedUrl.searchParams.set('invitado', familyName);
-      } else {
-        personalizedUrl.searchParams.set('familia', familyName);
-      }
-      familyGeneratedLink.value = personalizedUrl.toString();
-      familyLinkResult.hidden = false;
-      if (familyCopyFeedback) {
-        familyCopyFeedback.textContent = 'Enlace público generado. Ya puedes copiarlo y compartirlo por WhatsApp.';
-      }
-    });
+  function getInvitationBaseUrl() {
+    if (!needsPublicBaseUrl) {
+      const current = new URL(window.location.href);
+      current.search = '';
+      current.hash = '';
+      current.pathname = current.pathname.replace(/index\.html?$/i, '');
+      if (!current.pathname.endsWith('/')) current.pathname += '/';
+      return current;
+    }
+    const publicBaseText = familyPublicUrlInput?.value.trim() || '';
+    if (!publicBaseText) return null;
+    try {
+      const publicBase = new URL(publicBaseText);
+      if (publicBase.protocol !== 'https:') return null;
+      publicBase.search = '';
+      publicBase.hash = '';
+      publicBase.pathname = publicBase.pathname.replace(/index\.html?$/i, '');
+      if (!publicBase.pathname.endsWith('/')) publicBase.pathname += '/';
+      try { localStorage.setItem(FAMILY_PUBLIC_URL_STORAGE_KEY, publicBase.href); } catch (_) {}
+      return publicBase;
+    } catch (_) {
+      return null;
+    }
   }
 
-  async function copyFamilyLink() {
-    if (!familyGeneratedLink) return;
-    const textToCopy = familyGeneratedLink.value;
+  function buildInvitationLink(record) {
+    const baseUrl = getInvitationBaseUrl();
+    if (!baseUrl) return '';
+    const url = new URL(baseUrl.href);
+    url.searchParams.delete('preview');
+    url.searchParams.delete('familia');
+    url.searchParams.delete('pase');
+    url.searchParams.delete('invitado');
+    url.searchParams.delete('pases');
+    if (record.type === 'personal') {
+      url.searchParams.set('pase', 'personal');
+      url.searchParams.set('invitado', record.name);
+    } else {
+      url.searchParams.set('familia', record.name);
+      const count = Number.parseInt(record.passes, 10);
+      if (Number.isInteger(count) && count > 0 && count <= 30) url.searchParams.set('pases', String(count));
+    }
+    return url.toString();
+  }
+
+  async function copyTextValue(text) {
     let copied = false;
-
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(textToCopy);
+        await navigator.clipboard.writeText(text);
         copied = true;
       }
     } catch (error) {
-      console.warn('El portapapeles moderno no estuvo disponible; se usará el método alternativo.', error);
+      console.warn('Portapapeles moderno no disponible; se usará método alternativo.', error);
     }
-
     if (!copied) {
       const helper = document.createElement('textarea');
-      helper.value = textToCopy;
+      helper.value = text;
       helper.setAttribute('readonly', '');
       helper.style.position = 'fixed';
       helper.style.opacity = '0';
@@ -1127,16 +1117,192 @@
       try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
       helper.remove();
     }
+    return copied;
+  }
 
+  function readExtraFamilyLinks() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(EXTRA_FAMILY_LINKS_STORAGE_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed.filter(item => item && typeof item.name === 'string') : [];
+    } catch (_) { return []; }
+  }
+
+  function saveExtraFamilyLink(record) {
+    const current = readExtraFamilyLinks();
+    const normalized = record.name.toLocaleLowerCase('es-MX');
+    const existing = current.findIndex(item => item.name.toLocaleLowerCase('es-MX') === normalized);
+    if (existing >= 0) current[existing] = record;
+    else current.push(record);
+    try { localStorage.setItem(EXTRA_FAMILY_LINKS_STORAGE_KEY, JSON.stringify(current)); } catch (_) {}
+  }
+
+  function renderFamilyLinkCard(record, index, isPreset) {
+    const card = document.createElement('article');
+    card.className = 'registered-family-card';
+    const top = document.createElement('div');
+    top.className = 'registered-family-main';
+    const name = document.createElement('strong');
+    name.className = 'registered-family-name';
+    name.textContent = record.name;
+    top.appendChild(name);
+
+    const passes = Number.parseInt(record.passes, 10);
+    if (Number.isInteger(passes) && passes > 0 && passes <= 30) {
+      const badgeWrap = document.createElement('span');
+      badgeWrap.className = 'registered-pass-badge';
+      const badgeImage = document.createElement('img');
+      badgeImage.src = 'assets/pase-cantidad.png';
+      badgeImage.alt = 'Pases';
+      const badgeNumber = document.createElement('b');
+      badgeNumber.textContent = String(passes);
+      badgeWrap.append(badgeImage, badgeNumber);
+      top.appendChild(badgeWrap);
+    }
+    card.appendChild(top);
+
+    const link = buildInvitationLink({ ...record, type: 'family' });
+    const linkInput = document.createElement('input');
+    linkInput.className = 'registered-family-url';
+    linkInput.type = 'text';
+    linkInput.readOnly = true;
+    linkInput.value = link || 'Configura la URL pública de GitHub Pages';
+    linkInput.setAttribute('aria-label', `Enlace para ${record.name}`);
+    card.appendChild(linkInput);
+
+    const actions = document.createElement('div');
+    actions.className = 'registered-family-actions';
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.className = 'family-admin-primary registered-copy-button';
+    copyButton.textContent = 'COPIAR LINK';
+    copyButton.disabled = !link;
+    const feedback = document.createElement('span');
+    feedback.className = 'registered-family-feedback';
+    feedback.setAttribute('role', 'status');
+    copyButton.addEventListener('click', async () => {
+      const copied = await copyTextValue(link);
+      feedback.textContent = copied ? '¡Enlace copiado!' : 'Selecciona el enlace para copiarlo.';
+      if (!copied) { linkInput.focus(); linkInput.select(); }
+    });
+    actions.append(copyButton, feedback);
+    if (!isPreset) {
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'family-admin-secondary registered-remove-button';
+      removeButton.textContent = 'QUITAR';
+      removeButton.addEventListener('click', () => {
+        const current = readExtraFamilyLinks();
+        current.splice(index, 1);
+        try { localStorage.setItem(EXTRA_FAMILY_LINKS_STORAGE_KEY, JSON.stringify(current)); } catch (_) {}
+        renderRegisteredFamilies();
+      });
+      actions.appendChild(removeButton);
+    }
+    card.appendChild(actions);
+    return card;
+  }
+
+  function renderRegisteredFamilies() {
+    if (!predefinedFamilyLinks) return;
+    predefinedFamilyLinks.replaceChildren();
+    const extras = readExtraFamilyLinks();
+    PRESET_FAMILIES.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, true)));
+    extras.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, false)));
+    if (predefinedFamilyLinksFeedback) {
+      predefinedFamilyLinksFeedback.textContent = needsPublicBaseUrl && !getInvitationBaseUrl()
+        ? 'Pega la dirección HTTPS de GitHub Pages arriba para activar los enlaces y sus botones de copia.'
+        : `${PRESET_FAMILIES.length + extras.length} invitaciones familiares listas para copiar.`;
+    }
+  }
+
+  familyPublicUrlInput?.addEventListener('input', renderRegisteredFamilies);
+
+  if (familyAdminToggle && familyAdminPanel) {
+    familyAdminToggle.addEventListener('click', () => {
+      const willOpen = familyAdminPanel.hidden;
+      familyAdminPanel.hidden = !willOpen;
+      familyAdminToggle.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen && familyPasswordStep && !familyPasswordStep.hidden) {
+        window.setTimeout(() => familyAdminPassword?.focus({ preventScroll: true }), 80);
+      }
+    });
+  }
+
+  if (familyPasswordForm && familyAdminPassword && familyGeneratorStep && familyPasswordStep) {
+    familyPasswordForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (familyAdminPassword.value === FAMILY_LINK_ACCESS_CODE) {
+        familyPasswordError.hidden = true;
+        familyPasswordStep.hidden = true;
+        familyGeneratorStep.hidden = false;
+        renderRegisteredFamilies();
+        window.setTimeout(() => familyNameInput?.focus({ preventScroll: true }), 80);
+      } else {
+        familyPasswordError.hidden = false;
+        familyAdminPassword.select();
+      }
+    });
+  }
+
+  function updateInvitationLinkTypeUI() {
+    const personalMode = invitationLinkType?.value === 'personal';
+    if (familyNameLabel) familyNameLabel.textContent = personalMode ? 'Nombre del invitado' : 'Nombre de la familia';
+    if (familyNameInput) familyNameInput.placeholder = personalMode ? 'Ej. Jorge Isaac Arreola' : 'Ej. Familia Arreola';
+    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace de pase personal' : 'Enlace de invitación familiar';
+    if (familyPassCountWrap) familyPassCountWrap.hidden = personalMode;
+    const title = familyGeneratorStep?.querySelector('.family-admin-create-title');
+    if (title) title.textContent = personalMode ? 'Crear pase personal' : 'Agregar otra invitación familiar';
+  }
+  invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI);
+  updateInvitationLinkTypeUI();
+
+  if (familyLinkForm && familyNameInput && familyGeneratedLink && familyLinkResult) {
+    familyLinkForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = familyNameInput.value
+        .replace(/[<>]/g, '')
+        .replace(/[\u0000-\u001F\u007F]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 70);
+      if (!name) { familyNameInput.focus(); return; }
+
+      const type = invitationLinkType?.value === 'personal' ? 'personal' : 'family';
+      const passCount = type === 'family' ? Number.parseInt(familyPassCountInput?.value || '', 10) : NaN;
+      if (type === 'family' && familyPassCountInput?.value && (!Number.isInteger(passCount) || passCount < 1 || passCount > 30)) {
+        familyPassCountInput.focus();
+        return;
+      }
+      const record = { name, type, passes: Number.isInteger(passCount) ? passCount : undefined };
+      const personalizedUrl = buildInvitationLink(record);
+      if (!personalizedUrl) {
+        if (familyPublicUrlError) {
+          familyPublicUrlError.textContent = 'Configura primero una dirección HTTPS válida de GitHub Pages. No se pueden compartir enlaces file:/// o localhost.';
+          familyPublicUrlError.hidden = false;
+        }
+        familyPublicUrlInput?.focus();
+        return;
+      }
+      if (familyPublicUrlError) familyPublicUrlError.hidden = true;
+      familyGeneratedLink.value = personalizedUrl;
+      familyLinkResult.hidden = false;
+      if (type === 'family') {
+        saveExtraFamilyLink({ name, passes: record.passes || null });
+        renderRegisteredFamilies();
+      }
+      if (familyCopyFeedback) familyCopyFeedback.textContent = 'Enlace público generado. Ya puedes copiarlo y compartirlo por WhatsApp.';
+    });
+  }
+
+  async function copyFamilyLink() {
+    if (!familyGeneratedLink) return;
+    const copied = await copyTextValue(familyGeneratedLink.value);
     if (familyCopyFeedback) {
       familyCopyFeedback.textContent = copied
         ? '¡Enlace copiado! Ya puedes pegarlo en WhatsApp.'
         : 'No se pudo copiar automáticamente. Mantén presionado el enlace para copiarlo.';
     }
-    if (!copied) {
-      familyGeneratedLink.focus();
-      familyGeneratedLink.select();
-    }
+    if (!copied) { familyGeneratedLink.focus(); familyGeneratedLink.select(); }
   }
 
   familyCopyLink?.addEventListener('click', copyFamilyLink);
@@ -1145,6 +1311,7 @@
       familyNameInput.value = '';
       familyNameInput.focus();
     }
+    if (familyPassCountInput) familyPassCountInput.value = '';
     if (familyLinkResult) familyLinkResult.hidden = true;
     if (familyCopyFeedback) familyCopyFeedback.textContent = '';
   });
