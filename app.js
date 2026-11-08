@@ -85,11 +85,6 @@
 
   musicToggle?.addEventListener('click', toggleBackgroundMusic);
   updateMusicToggle();
-  // Evita trabajo de animación cuando el navegador mantiene la pestaña en segundo plano.
-  document.addEventListener('visibilitychange', () => {
-    document.documentElement.classList.toggle('page-hidden', document.hidden);
-  }, { passive: true });
-
 
   // El modo de revisión permite probar el contenido sin reproducir el sobre.
   if (new URLSearchParams(window.location.search).get('preview') === '1') {
@@ -168,10 +163,10 @@
     layer.hidden = false;
     layer.dataset.created = 'true';
     const fragment = document.createDocumentFragment();
-    const petalCount = window.matchMedia && window.matchMedia('(max-width: 480px)').matches ? 5 : 7;
+    const petalCount = window.matchMedia('(max-width: 700px)').matches ? 4 : 6;
     const petalAssets = [
-      { src: 'assets/petalo-rosa.webp', widthMin: 23, widthMax: 34, ratio: 1.20 },
-      { src: 'assets/petalo-marfil.webp', widthMin: 29, widthMax: 42, ratio: 1.02 }
+      { src: 'assets/petalo-rosa.png', widthMin: 23, widthMax: 34, ratio: 1.20 },
+      { src: 'assets/petalo-marfil.png', widthMin: 29, widthMax: 42, ratio: 1.02 }
     ];
 
     for (let i = 0; i < petalCount; i += 1) {
@@ -182,8 +177,6 @@
       petal.alt = '';
       petal.draggable = false;
       petal.decoding = 'async';
-      petal.loading = 'eager';
-      petal.fetchPriority = 'low';
       const width = type.widthMin + Math.random() * (type.widthMax - type.widthMin);
       const duration = 17 + Math.random() * 14;
       const startX = Math.random() * 100;
@@ -244,12 +237,13 @@
     // Así las animaciones se reproducen tanto al bajar como al volver a subir.
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-revealed');
-        // Cada bloque se anima una sola vez: evita reinicios y trabajo extra al volver a pasar.
-        observer.unobserve(entry.target);
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+        } else {
+          entry.target.classList.remove('is-revealed');
+        }
       });
-    }, { root: null, rootMargin: '0px 0px 4% 0px', threshold: 0.06 });
+    }, { root: null, rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
 
     targets.forEach((element) => observer.observe(element));
   }
@@ -345,7 +339,7 @@
       wrapper.style.setProperty('--fall-delay', `${delay.toFixed(2)}s`);
 
       const envelope = document.createElement('img');
-      envelope.src = 'assets/sobre-lluvia.webp';
+      envelope.src = 'assets/sobre-lluvia.png';
       envelope.alt = '';
       envelope.draggable = false;
       wrapper.appendChild(envelope);
@@ -1145,7 +1139,7 @@
       badgeWrap.setAttribute('role', 'img');
       badgeWrap.setAttribute('aria-label', `Pases asignados: ${passes}`);
       const badgeImage = document.createElement('img');
-      badgeImage.src = 'assets/pase-cantidad.webp';
+      badgeImage.src = 'assets/pase-cantidad.png';
       badgeImage.alt = '';
       const badgeNumber = document.createElement('b');
       badgeNumber.textContent = String(passes);

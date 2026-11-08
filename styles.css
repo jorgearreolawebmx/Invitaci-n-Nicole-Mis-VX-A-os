@@ -133,7 +133,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
 .welcome-copy p:last-child { margin:0; color:#4e4b4d; font:italic 17px/1.55 var(--serif); }
 .scroll-cue { position:absolute; bottom:34px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--gold); font:500 8px var(--sans); letter-spacing:.2em; }
 .scroll-cue span { width:1px; height:26px; background:linear-gradient(var(--gold),transparent); }
-.floral { position:absolute; width:190px; height:auto; pointer-events:none; filter:drop-shadow(0 5px 8px rgba(49,31,42,.12)); }
+.floral { position:absolute; width:190px; height:auto; pointer-events:none; filter:none; }
 .floral-hero { right:-86px; bottom:-42px; transform:rotate(-8deg); opacity:.78; }
 
 /* Fecha y cuenta regresiva */
@@ -642,7 +642,7 @@ h2 { margin: 0 0 14px; color: var(--navy); font: 500 42px/1 var(--serif); }
   opacity: 0;
   transform: rotate(var(--start-rotation, 0deg));
   animation: petal-float var(--fall-duration, 19s) linear var(--fall-delay, 0s) infinite;
-  will-change: transform, opacity;
+  /* Sin promoción permanente de capas: reduce memoria GPU en móviles. */
 }
 @keyframes petal-float {
   0% { transform: translate3d(0, -10vh, 0) rotate(var(--start-rotation, 0deg)); opacity: 0; }
@@ -754,7 +754,7 @@ body {
   transform: translateX(-50%);
   pointer-events: none;
   opacity: 0;
-  background-image: linear-gradient(rgba(255,251,248,.035), rgba(255,251,248,.035)), url("assets/fondo-tela-continuo.webp");
+  background-image: linear-gradient(rgba(255,251,248,.035), rgba(255,251,248,.035)), url("assets/fondo-tela-continuo.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -862,7 +862,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 /* AJUSTE SOLICITADO: portada blanca hasta el contador y tela con resplandor central después. */
 .scroll-backdrop {
   background-color: #f6eeea;
-  background-image: url("assets/fondo-tela-continuo.webp");
+  background-image: url("assets/fondo-tela-continuo.jpg");
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -992,7 +992,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 /* TARJETAS-GRÁFICAS DE UBICACIÓN: placas PNG reales con contenido superpuesto */
 .place-section {
   background: linear-gradient(rgba(251,246,241,.82),rgba(251,246,241,.82)),
-              url("assets/fondo-tela-continuo.webp") center/cover no-repeat;
+              url("assets/fondo-tela-continuo.jpg") center/cover no-repeat;
 }
 .place-section h2 { margin-bottom: 27px; }
 .place-card.location-card {
@@ -2260,7 +2260,7 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
   color: #26344e !important;
   background:
     radial-gradient(ellipse 66% 70% at 50% 48%, rgba(255,253,250,.72) 0%, rgba(255,251,247,.48) 61%, rgba(255,249,244,.12) 100%),
-    url("assets/fondo-tela-continuo.webp") center 54% / cover no-repeat !important;
+    url("assets/fondo-tela-continuo.jpg") center 54% / cover no-repeat !important;
 }
 .closing > * { position: relative; z-index: 1; }
 .closing-script {
@@ -3417,19 +3417,13 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 }
 .family-personal-mode-note[hidden] { display:none !important; }
 
-/* OPTIMIZACIÓN NOV 2026: menos capas permanentes y composición más ligera en móviles. */
-.hero-photo { will-change: auto; }
-.petal { will-change: auto; }
+/* OPTIMIZACIÓN MÓVIL: transparencias PNG y composición ligera */
 @media (max-width: 700px) {
-  .floral,
-  .family-heading-icon,
-  .xv-coming-section .prexv-coming-plaque,
-  .gift-urn { filter: none !important; }
-  .invitation { box-shadow: none; }
+  .petal-layer { contain: strict; }
+  .petal { backface-visibility: hidden; }
+  .floral, .family-heading-icon, .hero-logo, .hero-date,
+  .location-panel-art, .gift-art-still { filter: none !important; }
 }
-.page-hidden .hero-photo { animation-play-state: paused !important; }
-.page-hidden .petal { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
-  .hero-photo, .petal, .intro-prompt-arrow { animation: none !important; }
-  html { scroll-behavior: auto; }
+  .petal { animation: none !important; opacity: .45; }
 }
