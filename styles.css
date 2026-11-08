@@ -3427,3 +3427,53 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .petal { animation: none !important; opacity: .45; }
 }
+
+
+/* CORRECCIÓN DEFINITIVA DE TRANSPARENCIAS EN PLACAS DE UBICACIÓN
+   El estilo móvil heredado de .place-card aplicaba un fondo con !important.
+   Las tarjetas de ubicación usan PNG con transparencia, por lo que deben
+   permanecer completamente transparentes en todos los estados y tamaños. */
+.place-section a.place-card.location-card,
+.place-section a.place-card.location-card:link,
+.place-section a.place-card.location-card:visited,
+.place-section a.place-card.location-card:hover,
+.place-section a.place-card.location-card:focus,
+.place-section a.place-card.location-card:active,
+.place-section a.place-card.location-card.is-pressed {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline-offset: 4px;
+}
+
+.place-section a.place-card.location-card::before,
+.place-section a.place-card.location-card::after {
+  content: none !important;
+  display: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.place-section .location-panel-art {
+  background: transparent !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+/* La sombra ornamental, si se necesita, debe formar parte del PNG con alfa,
+   nunca de una caja rectangular detrás de la imagen. */
+@media (max-width: 700px) {
+  .place-section a.place-card.location-card,
+  .place-section a.place-card.location-card:hover,
+  .place-section a.place-card.location-card:active,
+  .place-section a.place-card.location-card.is-pressed {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+}
