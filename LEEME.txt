@@ -308,3 +308,9 @@ IMPORTANTE PARA ACTIVAR
 La actualización del sitio por sí sola no despliega el backend. Hasta que se complete esa activación, las confirmaciones centrales y el panel sincronizado no estarán disponibles.
 
 Las confirmaciones que ya se enviaron directamente por WhatsApp antes de esta actualización no se importan automáticamente. Deben registrarse manualmente en el panel.
+
+
+GALERÍA PRE QUINCE CON FOTOGRAFÍAS FINALES
+- Se sustituyeron los 15 espacios de "próximamente" por las 9 fotografías finales de la sesión Pre Quince.
+- Las fotografías están en assets/prexv/: 001.webp a 009.webp (versión ligera para el carrusel) y 001-full.webp a 009-full.webp (alta resolución para el visor ampliado).
+- Al tocar la fotografía activa se abre el visor ampliado, igual que en la galería de infancia, con deslizamiento entre fotos.

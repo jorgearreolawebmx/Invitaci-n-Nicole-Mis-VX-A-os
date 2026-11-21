@@ -866,7 +866,7 @@
     });
   }
 
-  // Carrusel Pre Quince: utiliza el mismo mazo 3D y conserva los 15 espacios bloqueados.
+  // Carrusel Pre Quince: utiliza el mismo mazo 3D y abre las fotografías en el visor ampliado.
   const prexvCarousel = document.getElementById('prexvCarousel');
   const prexvViewport = document.getElementById('prexvViewport');
   const prexvTrack = document.getElementById('prexvGalleryTrack');
@@ -880,6 +880,7 @@
   let prexvTimer = null;
   let prexvVisible = false;
   let prexvPointerStart = null;
+  let suppressPrexvClick = false;
 
   function setPrexvSlide(nextIndex, restartAutoplay = true) {
     if (!prexvSlides.length) return;
@@ -898,7 +899,7 @@
       dot.classList.toggle('is-active', index === prexvIndex);
       dot.setAttribute('aria-current', String(index === prexvIndex));
     });
-    if (prexvStatus) prexvStatus.textContent = `Espacio ${prexvIndex + 1} de ${prexvSlides.length} · Galería próximamente`;
+    if (prexvStatus) prexvStatus.textContent = `Fotografía ${prexvIndex + 1} de ${prexvSlides.length} · Desliza para recorrer`;
     if (restartAutoplay) restartPrexvAutoplay();
   }
 
@@ -908,7 +909,7 @@
   }
 
   function startPrexvAutoplay() {
-    if (prexvSlides.length < 2 || !prexvVisible || document.hidden) return;
+    if (prexvSlides.length < 2 || !prexvVisible || document.hidden || !lightboxIsClosed()) return;
     stopPrexvAutoplay();
     prexvTimer = window.setInterval(() => setPrexvSlide(prexvIndex + 1, false), 4300);
   }
@@ -926,7 +927,7 @@
         dot.type = 'button';
         dot.className = 'prexv-dot';
         dot.dataset.prexvIndex = String(index);
-        dot.setAttribute('aria-label', `Mostrar espacio Pre Quince ${index + 1}`);
+        dot.setAttribute('aria-label', `Mostrar fotografía Pre Quince ${index + 1} de ${prexvSlides.length}`);
         fragment.appendChild(dot);
       });
       prexvDotsContainer.replaceChildren(fragment);
@@ -948,15 +949,12 @@
       const dy = event.clientY - prexvPointerStart.y;
       prexvPointerStart = null;
       if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.08) {
+        suppressPrexvClick = true;
+        window.setTimeout(() => { suppressPrexvClick = false; }, 450);
         setPrexvSlide(prexvIndex + (dx < 0 ? 1 : -1));
       }
     }, { passive: true });
     prexvViewport?.addEventListener('pointercancel', () => { prexvPointerStart = null; }, { passive: true });
-    prexvSlides.forEach((slide, index) => {
-      slide.addEventListener('click', () => {
-        if (!slide.classList.contains('is-active')) setPrexvSlide(index);
-      });
-    });
     if ('IntersectionObserver' in window && prexvCarousel) {
       const prexvObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -986,25 +984,36 @@
   const lightboxNext = document.getElementById('lightboxNext');
   let lightboxPointerStart = null;
 
+  // El visor ampliado sirve a ambas galerías: infancia y sesión Pre Quince.
+  const lightboxSets = {
+    gallery: { slides: gallerySlides, getIndex: () => galleryIndex, setSlide: setGallerySlide, stop: stopGalleryAutoplay, start: startGalleryAutoplay },
+    prexv: { slides: prexvSlides, getIndex: () => prexvIndex, setSlide: setPrexvSlide, stop: stopPrexvAutoplay, start: startPrexvAutoplay }
+  };
+  let lightboxSet = lightboxSets.gallery;
+
   function setLightboxSlide(nextIndex) {
-    if (!gallerySlides.length || !lightboxImage) return;
-    setGallerySlide(nextIndex, false);
-    const activeSlide = gallerySlides[galleryIndex];
+    const { slides, getIndex, setSlide } = lightboxSet;
+    if (!slides.length || !lightboxImage) return;
+    setSlide(nextIndex, false);
+    const currentIndex = getIndex();
+    const activeSlide = slides[currentIndex];
     const source = activeSlide?.dataset.full || activeSlide?.querySelector('img')?.src;
     const thumbnail = activeSlide?.querySelector('img');
     if (!source) return;
 
     lightboxImage.style.animation = 'none';
     lightboxImage.src = source;
-    lightboxImage.alt = thumbnail?.alt || `Fotografía ${galleryIndex + 1} de Nicole`;
+    lightboxImage.alt = thumbnail?.alt || `Fotografía ${currentIndex + 1} de Nicole`;
     void lightboxImage.offsetWidth;
     lightboxImage.style.animation = '';
-    if (lightboxCounter) lightboxCounter.textContent = `${galleryIndex + 1} / ${gallerySlides.length}`;
+    if (lightboxCounter) lightboxCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
   }
 
-  function openGallery(index) {
+  function openGallery(index, setName = 'gallery') {
     if (!lightbox || !lightboxImage) return;
+    lightboxSet = lightboxSets[setName] || lightboxSets.gallery;
     stopGalleryAutoplay();
+    stopPrexvAutoplay();
     lightbox.hidden = false;
     document.body.style.overflow = 'hidden';
     setLightboxSlide(index);
@@ -1023,9 +1032,21 @@
     });
   });
 
+  prexvSlides.forEach((button, index) => {
+    button.addEventListener('click', (event) => {
+      if (suppressPrexvClick) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      if (button.classList.contains('is-active')) openGallery(index, 'prexv');
+      else setPrexvSlide(index);
+    });
+  });
+
   function navigateLightbox(direction) {
     if (!lightbox || lightbox.hidden) return;
-    setLightboxSlide(galleryIndex + direction);
+    setLightboxSlide(lightboxSet.getIndex() + direction);
   }
   lightboxPrev?.addEventListener('click', () => navigateLightbox(-1));
   lightboxNext?.addEventListener('click', () => navigateLightbox(1));
@@ -1038,8 +1059,9 @@
       lightboxImage.style.animation = '';
     }
     document.body.style.overflow = '';
-    gallerySlides[galleryIndex]?.focus({ preventScroll: true });
+    lightboxSet.slides[lightboxSet.getIndex()]?.focus({ preventScroll: true });
     startGalleryAutoplay();
+    startPrexvAutoplay();
   }
   closeLightbox?.addEventListener('click', closeGallery);
   lightbox?.addEventListener('click', (event) => {
@@ -1071,8 +1093,6 @@
 
 
 
-  // La galería Pre Quince se mantiene visualmente bloqueada con 15 espacios vacíos.
-  // Cuando se carguen las fotografías, se sustituirán los espacios por imágenes reales.
 
   // Personalización por enlace: invitación familiar (?familia=...) o pase personal (?pase=personal&invitado=...).
   // El contenido se inserta con textContent para evitar interpretar HTML.
