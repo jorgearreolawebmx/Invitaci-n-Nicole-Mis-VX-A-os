@@ -3477,3 +3477,23 @@ body.invitation-open .scroll-backdrop { opacity: 1; }
     filter: none !important;
   }
 }
+
+
+/* RSVP conectado: selección de asistentes y ajustes administrativos */
+.rsvp-form select, .family-admin-form textarea, .family-admin-form input[type="tel"] {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(201, 168, 111, .52);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #17233a;
+  background: #fffdf9;
+  font: inherit;
+  box-sizing: border-box;
+}
+.rsvp-attendees-wrap { display: grid; gap: 8px; margin: 12px 0; }
+.rsvp-attendees-wrap[hidden] { display: none !important; }
+.family-admin-form textarea { resize: vertical; min-height: 82px; }
+#attendanceImportLegacy { width: 100%; margin: 12px 0; }
+#attendanceImportLegacy[hidden] { display: none !important; }
+.family-admin-feedback[data-state="error"] { color: #ffd0d0; }

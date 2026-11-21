@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261108-transparencias">
+  <link rel="stylesheet" href="styles.css?v=20261121-rsvp-central">
 </head>
 <body>
   <!-- Fondo persistente: permanece detrás del contenido mientras el invitado se desplaza. -->
@@ -424,7 +424,7 @@
         <p>Por favor, confirma con Sheylla antes del <strong>20 de noviembre de 2026</strong>.</p>
         <div class="rsvp-contact">
           <span>Sheylla Indira Barragán Corona</span>
-          <strong>228 856 0974</strong>
+          <strong id="rsvpContactNumber">228 856 0974</strong>
         </div>
         <p class="rsvp-prompt">¿Podrás acompañarme?</p>
         <div class="rsvp-actions" role="group" aria-label="Respuesta de asistencia">
@@ -434,8 +434,13 @@
         <form id="rsvpForm" class="rsvp-form" hidden>
           <label for="rsvpName">Nombre completo</label>
           <input id="rsvpName" name="name" type="text" maxlength="120" minlength="5" autocomplete="name" placeholder="Nombre y apellidos" required>
-          <p class="rsvp-form-note">Escribe tu nombre completo para confirmar tu asistencia. Tu respuesta se enviará a Sheylla por WhatsApp.</p>
-          <button class="whatsapp-button" type="submit"><span aria-hidden="true">☏</span> ENVIAR CONFIRMACIÓN</button>
+          <div id="rsvpAttendeesWrap" class="rsvp-attendees-wrap">
+            <label for="rsvpAttendees">¿Cuántas personas asistirán?</label>
+            <select id="rsvpAttendees" name="attendees" required></select>
+            <p class="rsvp-form-note">No puedes superar la cantidad de pases asignados a tu invitación.</p>
+          </div>
+          <p class="rsvp-form-note">Tu respuesta se guardará en el registro de asistencia y después podrás avisar a Sheylla por WhatsApp.</p>
+          <button id="rsvpSubmitButton" class="whatsapp-button" type="submit"><span aria-hidden="true">☏</span> GUARDAR Y CONTINUAR A WHATSAPP</button>
         </form>
         <p id="rsvpFeedback" class="rsvp-feedback" role="status" aria-live="polite" hidden></p>
         <p class="rsvp-note">Fecha límite: 20 de noviembre</p>
@@ -459,7 +464,7 @@
             <p class="family-admin-title">Acceso para organizadores</p>
             <form id="familyPasswordForm" class="family-admin-form">
               <label for="familyAdminPassword">Introduce la clave</label>
-              <input id="familyAdminPassword" name="password" type="password" inputmode="numeric" autocomplete="off" placeholder="Contraseña" required>
+              <input id="familyAdminPassword" name="password" type="password" inputmode="text" autocomplete="current-password" placeholder="Contraseña" required>
               <button class="family-admin-primary" type="submit">ENTRAR</button>
               <p id="familyPasswordError" class="family-admin-feedback" role="alert" hidden>La contraseña no es correcta.</p>
             </form>
@@ -505,8 +510,8 @@
               <input id="familyNameInput" name="family" type="text" maxlength="70" autocomplete="off" placeholder="Ej. Familia Arreola" required>
               <p id="familyPersonalModeNote" class="family-personal-mode-note" hidden>Enlace general para los jóvenes: no lleva nombre y corresponde a un solo pase.</p>
               <div id="familyPassCountWrap" class="family-pass-input-wrap">
-                <label for="familyPassCountInput">Cantidad de pases (opcional)</label>
-                <input id="familyPassCountInput" name="passes" type="number" min="1" max="30" step="1" inputmode="numeric" placeholder="Ej. 2">
+                <label for="familyPassCountInput">Cantidad de pases asignados</label>
+                <input id="familyPassCountInput" name="passes" type="number" min="1" max="30" step="1" inputmode="numeric" placeholder="Ej. 2" required>
               </div>
               <button class="family-admin-primary" type="submit">GENERAR LINK</button>
             </form>
@@ -519,11 +524,23 @@
             </div>
             <p class="family-admin-note">Las invitaciones familiares muestran el nombre y la cantidad asignada. El pase personal es un enlace general para jóvenes, sin nombre y válido para una persona.</p>
 
+            <section class="admin-whatsapp-settings" aria-labelledby="adminWhatsAppSettingsTitle">
+              <p class="family-admin-title" id="adminWhatsAppSettingsTitle">Configuración de WhatsApp</p>
+              <form id="adminWhatsAppSettingsForm" class="family-admin-form">
+                <label for="adminWhatsAppNumber">Número que recibirá los avisos</label>
+                <input id="adminWhatsAppNumber" name="whatsapp" type="tel" inputmode="tel" placeholder="522288560974" required>
+                <label for="adminWhatsAppMessage">Mensaje inicial</label>
+                <textarea id="adminWhatsAppMessage" name="message" rows="3" maxlength="400">Hola Sheylla, te comparto mi confirmación de asistencia a los XV años de Nicole.</textarea>
+                <button class="family-admin-primary" type="submit">GUARDAR CONFIGURACIÓN</button>
+                <p id="adminWhatsAppSettingsFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+
             <section class="attendance-admin" aria-labelledby="attendanceAdminTitle">
               <div class="attendance-admin-heading">
                 <p class="eyebrow">CONTROL INTERNO</p>
                 <h3 id="attendanceAdminTitle">Resumen de asistencia</h3>
-                <p>Cuando recibas una confirmación por WhatsApp, captura el nombre y la respuesta para llevar el conteo.</p>
+                <p>Las respuestas de los invitados se registran automáticamente aquí. También puedes capturar confirmaciones que recibiste antes de activar este sistema.</p>
               </div>
               <div class="attendance-summary" aria-live="polite">
                 <div><strong id="attendanceResponses">0</strong><span>RESPUESTAS</span></div>
@@ -538,6 +555,8 @@
                   <option value="yes">Sí asistirá</option>
                   <option value="no">No podrá asistir</option>
                 </select>
+                <label for="attendanceAdminAttendees">Personas que asistirán</label>
+                <input id="attendanceAdminAttendees" name="attendees" type="number" min="1" max="30" step="1" value="1">
                 <button class="family-admin-primary" type="submit">GUARDAR RESPUESTA</button>
               </form>
               <p id="attendanceAdminFeedback" class="family-admin-feedback" role="status" aria-live="polite"></p>
@@ -546,13 +565,14 @@
                 <span id="attendanceListCount">0 registros</span>
               </div>
               <ol id="attendanceRecordList" class="attendance-record-list"></ol>
-              <p class="attendance-pdf-help">Pulsa ACTUALIZAR para volver a leer la lista guardada en este navegador. Después podrás generar el reporte en PDF.</p>
+              <p class="attendance-pdf-help">Las respuestas se guardan en una hoja de cálculo central y se pueden consultar desde cualquier dispositivo autorizado.</p>
+              <button id="attendanceImportLegacy" class="family-admin-secondary" type="button" hidden>IMPORTAR REGISTROS ANTIGUOS DE ESTE NAVEGADOR</button>
               <div class="attendance-admin-actions">
                 <button id="attendanceRefresh" class="family-admin-secondary" type="button">ACTUALIZAR</button>
                 <button id="attendanceExportPdf" class="family-admin-primary" type="button" disabled>DESCARGAR PDF</button>
                 <button id="attendanceClearAll" class="family-admin-secondary attendance-clear-button" type="button">BORRAR REGISTROS</button>
               </div>
-              <p class="attendance-admin-limit">Importante: este control se guarda únicamente en el navegador donde lo administras. Como WhatsApp no devuelve las respuestas a la página, debes registrar aquí manualmente cada mensaje recibido. El conteo registra una persona por cada respuesta afirmativa y no se sincroniza entre dispositivos.</p>
+              <p class="attendance-admin-limit">Las respuestas nuevas se guardan cuando el invitado confirma en la página, antes de abrir WhatsApp. Los mensajes antiguos recibidos directamente por WhatsApp deberán capturarse o importarse manualmente.</p>
             </section>
           </div>
         </div>
@@ -581,6 +601,7 @@
     <button id="lightboxNext" class="lightbox-nav lightbox-next" type="button" aria-label="Fotografía siguiente">›</button>
   </div>
 
-  <script src="app.js"></script>
+  <script src="config.js?v=20261121-rsvp-2"></script>
+  <script src="app.js?v=20261121-central-rsvp"></script>
 </body>
 </html>

@@ -102,19 +102,18 @@ ACTUALIZACIÓN DE TARJETAS DE UBICACIÓN
 - En pantalla táctil, la placa da una respuesta de escala al presionarla.
 
 
-GENERADOR DE ENLACES PERSONALIZADOS POR FAMILIA
-------------------------------------------------
+GENERADOR DE ENLACES PERSONALIZADOS POR FAMILIA (VERSIÓN ANTERIOR; SUSTITUIDA EL 21-11-2026)
+-------------------------------------------------------------------------------------
 - Al final de la invitación aparece el acceso discreto “LINK PERSONALIZADO”.
-- Contraseña de acceso configurada: 12345.
+- La autenticación local de esta versión fue retirada y sustituida por autenticación privada en Google Apps Script.
 - Después de ingresar, escribe el nombre de una familia y pulsa “GENERAR LINK”.
 - El sistema crea una URL con el parámetro ?familia=NombreDeLaFamilia y permite copiarla.
 - Al abrir el enlace, la invitación muestra el saludo personalizado con el nombre de esa familia.
-- La página y los enlaces son estáticos: no requiere Google Apps Script, Supabase ni base de datos.
+- En esta versión histórica, la página y los enlaces eran estáticos y no requerían base de datos. La actualización del 21-11-2026 sí requiere activar Google Apps Script y Google Sheets.
 - Si abres la invitación desde su URL publicada (GitHub Pages o dominio HTTPS propio), los enlaces se generan automáticamente con esa dirección.
 - Si abres index.html desde file:// en tu computadora, el generador te pedirá la URL HTTPS pública de GitHub Pages. Pégala una vez (por ejemplo, https://usuario.github.io/repositorio/) y se recordará en ese navegador.
 - Nunca se debe compartir una dirección file:///C:/... porque solo existe en la computadora donde se abrió el archivo.
-- Limitaciones: los enlaces no se guardan en un registro central, no hay panel de listado y las confirmaciones de asistencia siguen enviándose por WhatsApp sin almacenarse en una base de datos.
-- Seguridad: la contraseña 12345 está implementada en el JavaScript del navegador. Es una barrera visual básica, no un sistema de autenticación seguro; alguien que inspeccione el código puede encontrarla. No utilizar para información confidencial.
+- Estas limitaciones corresponden al código anterior y quedan sustituidas por la integración central documentada al final de este archivo.
 
 
 ACTUALIZACIÓN: LLUVIA DE SOBRES ANIMADA
@@ -184,16 +183,16 @@ ACTUALIZACIÓN: CIERRE, FOTOS FAMILIARES Y LEGIBILIDAD
 - El fondo del cierre ahora utiliza una composición propia de la tela marfil, gasas rosa palo y laterales azul marino, con una iluminación central suave para que los laterales se distingan más sin perjudicar la lectura.
 
 
-ACTUALIZACIÓN: SESIÓN PRE XV, PÉTALOS Y CONTROL DE ASISTENCIA
------------------------------------------------------------
+ACTUALIZACIÓN HISTÓRICA: SESIÓN PRE XV, PÉTALOS Y CONTROL DE ASISTENCIA (ANTES DEL REGISTRO CENTRAL)
+-------------------------------------------------------------------------------------------------
 - La sección “Galería de mis XV años” ahora se presenta como “Sesión Pre XV” y está reservada para 15 fotografías de esa sesión. El texto “Después de la celebración” fue retirado.
 - La sección muestra “15 fotografías de mi sesión” y “PRÓXIMAMENTE”, además de conservar la cuenta regresiva para el inicio de los XV años.
 - Se separó el PNG proporcionado en dos recursos fotográficos: assets/petalo-rosa.png y assets/petalo-marfil.png. La lluvia mezcla ambos modelos con tamaños más grandes, rotación y desplazamiento suave.
 - Se redujo la separación visual entre la confirmación y el cierre, para que el fondo de tela continúe sin una franja vacía.
 - En la confirmación, al elegir “Sí, asistiré”, únicamente se pide el nombre completo. El mensaje de WhatsApp confirma la asistencia sin preguntar ni incluir acompañantes. El panel administrativo cuenta una persona por cada respuesta afirmativa.
-- El acceso “LINK PERSONALIZADO” conserva la clave 12345. Después del acceso aparece “Resumen de asistencia”, con conteo de respuestas, total de asistentes y respuestas de no asistencia.
+- La versión anterior utilizaba una clave local y un resumen de asistencia manual. Ese acceso y almacenamiento fueron reemplazados por el panel central de la actualización 21-11-2026.
 - El panel permite registrar manualmente cada respuesta recibida, eliminar registros y generar un reporte PDF con resumen y tabla. Antes de descargarlo, pulsa ACTUALIZAR para volver a leer los registros guardados. Los datos se conservan mediante localStorage en el navegador de administración.
-- IMPORTANTE: el envío por WhatsApp no notifica automáticamente a la página ni a GitHub Pages. Por eso, para que el resumen refleje los mensajes recibidos, Sheylla debe capturar cada respuesta en el panel. Los registros no se sincronizan entre teléfonos o computadoras. Para sincronización automática entre dispositivos sería necesario un servicio de almacenamiento compartido (por ejemplo, Google Apps Script/Sheets o una base de datos).
+- IMPORTANTE: esta descripción corresponde a la versión histórica. La actualización 21-11-2026 registra nuevas respuestas en Google Sheets antes de abrir WhatsApp. Los mensajes anteriores recibidos directamente por WhatsApp todavía deben capturarse manualmente.
 - Recomendación: entrar al panel administrativo desde el mismo navegador/computadora para conservar el registro y descargar periódicamente el PDF como respaldo.
 
 
@@ -244,14 +243,13 @@ ACTUALIZACIÓN DE CARRUSELES (07-11-2026)
 - Ambas galerías pausan el autoplay cuando salen del área visible o la pestaña queda en segundo plano.
 
 
-ACTUALIZACIÓN: PANEL DE FAMILIAS Y PASES (07-11-2026)
----------------------------------------------------
+ACTUALIZACIÓN HISTÓRICA: PANEL DE FAMILIAS Y PASES (07-11-2026; ALMACENAMIENTO LOCAL)
+--------------------------------------------------------------------------------------
 - El panel administrativo incluye 12 familias precargadas para copiar sus enlaces personalizados.
 - Los enlaces de las familias se construyen automáticamente desde la URL pública HTTPS de GitHub Pages. Si se abre index.html desde file://, pega una sola vez la URL pública en el campo solicitado.
 - Familias incluidas: Familia Olmos Dorantes; Familia Roa Ficache; Sr. Humberto Corona Padilla y Esposa; Sra. Zoila Corona Padilla; Familia Olmos García; Mtro. Gandhi Olmos García y Familia; Familia Olmos Prado (2 pases); Familia Olmos Roa (6 pases); Sra. María Luisa Ficache Martínez; Mtra. María de Lourdes Roa Morales (2 pases); Familia Torres Olivos (2 pases); Itzel Roa Franco e Hijo.
 - Para las cuatro familias con pases explícitos, el enlace incluye el parámetro ?pases= y la invitación muestra la insignia PASES con su número. No se asignaron cantidades a las familias cuyo número no fue indicado.
-- Se pueden agregar nuevas invitaciones familiares con nombre y número de pases opcional. Las nuevas familias se guardan en localStorage del navegador administrativo y aparecen en la misma lista con botón COPIAR LINK.
-- El panel sigue siendo local y no usa Google Apps Script ni base de datos. Los enlaces precargados quedan definidos en el código; las familias adicionales se guardan solo en el navegador que las agregó.
+- En la versión histórica, las familias adicionales se guardaban en localStorage. La actualización 21-11-2026 migra esos enlaces al registro central cuando ese respaldo permanece disponible en el navegador.
 - Se reemplazaron los medallones del protocolo por los diez iconos actualizados proporcionados: iglesia, invitados, corona, vals, brindis, cena, vestido, pastel, destellos y música.
 - Se reorganizó el bloque de brindis para mostrar el texto introductorio y los nombres de Christian Edsson Barragán Corona y Brenda Prissyla Barragán Corona en dos renglones legibles bajo el icono.
 
@@ -273,3 +271,40 @@ ACTUALIZACIÓN: DISTINTIVOS EN INVITACIÓN Y REPORTE PDF DE ASISTENCIA (07-11-20
 - Antes de generar el PDF, pulsa ACTUALIZAR para volver a leer los registros guardados en el navegador administrativo. Después se habilita DESCARGAR PDF.
 - El PDF se genera directamente en el navegador sin dependencias externas. La descarga del PDF toma los registros locales del dispositivo donde se está administrando la invitación.
 - Limitación: este panel sigue usando localStorage; no sincroniza respuestas entre distintos dispositivos. Las respuestas recibidas por WhatsApp deben capturarse manualmente en el mismo navegador administrativo.
+
+
+============================================================
+ACTUALIZACIÓN 21 DE NOVIEMBRE DE 2026 — REGISTRO CENTRAL RSVP
+============================================================
+
+Esta actualización sustituye el panel local anterior por un registro central basado en Google Apps Script y Google Sheets.
+
+CAMBIOS PRINCIPALES
+- La respuesta de asistencia se guarda en el servicio central antes de abrir WhatsApp.
+- El invitado indica cuántas personas asistirán. La cifra se valida contra los pases asignados al enlace.
+- La respuesta afirmativa o negativa queda guardada en la hoja central.
+- El panel administrativo consulta el mismo registro desde distintos dispositivos.
+- El total de asistentes suma las personas confirmadas, no solo el número de respuestas.
+- El panel permite registrar manualmente confirmaciones antiguas recibidas por WhatsApp.
+- Se añadió una herramienta para importar registros manuales antiguos de localStorage cuando existan en el navegador.
+- El cliente puede cambiar desde el panel el número receptor de WhatsApp y el mensaje inicial.
+- Se añadieron identificadores de invitación para asociar cada respuesta al enlace correspondiente.
+- Los enlaces familiares adicionales creados en el navegador anterior se migran al registro central al iniciar sesión, cuando el respaldo local está disponible.
+- Las familias sin cantidad de pases explícita se muestran como PASES SIN ASIGNAR para que la organizadora establezca el dato correcto. No se inventó una cantidad.
+
+ARCHIVOS NUEVOS
+- config.js: URL de la aplicación web de Google Apps Script.
+- Apps-Script/Code.gs: backend para crear/consultar invitaciones y guardar respuestas.
+- CONFIGURACION_APPS_SCRIPT.txt: instrucciones paso a paso para activar el backend.
+
+IMPORTANTE PARA ACTIVAR
+1. Pegar Apps-Script-Code.gs en un proyecto nuevo de Google Apps Script como Code.gs.
+2. Configurar la propiedad privada ADMIN_PASSWORD.
+3. Ejecutar setupNicoleRsvp() para crear la hoja de cálculo y precargar familias.
+4. Implementar como Aplicación web, ejecutando como el propietario y con acceso para cualquier persona.
+5. La URL /exec de la implementación actual ya está configurada en config.js. Si generas una implementación nueva, actualiza ese valor.
+6. Publicar los archivos actualizados en GitHub Pages.
+
+La actualización del sitio por sí sola no despliega el backend. Hasta que se complete esa activación, las confirmaciones centrales y el panel sincronizado no estarán disponibles.
+
+Las confirmaciones que ya se enviaron directamente por WhatsApp antes de esta actualización no se importan automáticamente. Deben registrarse manualmente en el panel.

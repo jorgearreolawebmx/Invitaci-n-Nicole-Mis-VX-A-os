@@ -1,0 +1,128 @@
+CONFIGURACIÓN DEL REGISTRO CENTRAL DE ASISTENCIA
+Invitación de los XV años de Nicole Roa Barragán
+
+IMPORTANTE
+----------
+La página de GitHub es estática. Para que las confirmaciones se compartan entre teléfonos y computadoras, esta versión utiliza Google Apps Script como servicio y Google Sheets como registro central.
+
+El ZIP ya incluye el código del servicio en Apps-Script/Code.gs. No necesitas contratar un servidor. Sí necesitas activar el servicio desde una cuenta de Google que controles.
+
+PASO 1. CREAR EL PROYECTO DE GOOGLE APPS SCRIPT
+------------------------------------------------
+1. Abre https://script.google.com/ e inicia sesión con la cuenta de Google que será propietaria del registro.
+2. Crea un proyecto nuevo.
+3. En el editor, abre el archivo Code.gs.
+4. Borra el código de ejemplo y copia todo el contenido de Apps-Script/Code.gs de este ZIP.
+5. Guarda el proyecto.
+
+PASO 2. CONFIGURAR LA CONTRASEÑA ADMINISTRATIVA
+------------------------------------------------
+1. En Apps Script, abre Configuración del proyecto (icono de engrane).
+2. Busca Propiedades del script y pulsa Añadir propiedad del script.
+3. Nombre: ADMIN_PASSWORD
+4. Valor: establece una contraseña nueva, larga y difícil de adivinar. No uses 12345.
+5. Guarda las propiedades.
+
+La contraseña no está escrita en el JavaScript público de la invitación. Apps Script la consulta desde sus propiedades privadas.
+
+PASO 3. CREAR LA HOJA DE CÁLCULO
+---------------------------------
+1. Regresa al editor de Apps Script.
+2. En la lista de funciones, selecciona setupNicoleRsvp.
+3. Pulsa Ejecutar.
+4. Acepta los permisos solicitados por Google.
+5. La función creará una hoja de cálculo llamada “Nicole XV - Registro de invitaciones y asistencia”.
+6. También creará las pestañas Invitaciones, Respuestas y Configuracion y precargará las 12 familias del proyecto, además del pase general para jóvenes.
+
+La hoja queda en la cuenta propietaria. No la compartas públicamente. Los invitados no necesitan acceso directo a ella.
+
+PASO 4. PUBLICAR EL SERVICIO COMO APLICACIÓN WEB
+-------------------------------------------------
+1. En Apps Script pulsa Implementar > Nueva implementación.
+2. Selecciona el tipo Aplicación web.
+3. Ejecutar como: Yo (la cuenta propietaria del proyecto).
+4. Quién tiene acceso: Cualquier persona.
+5. Pulsa Implementar y completa la autorización si Google la solicita.
+6. Copia la URL de la aplicación web. Debe terminar en /exec.
+
+La aplicación web necesita acceso público para recibir confirmaciones de los invitados. Las operaciones administrativas siguen protegidas por la contraseña que configuraste y por una sesión temporal de seis horas.
+
+PASO 5. CONECTAR LA INVITACIÓN CON EL SERVICIO
+------------------------------------------------
+1. Abre config.js dentro de la carpeta de la invitación.
+2. Localiza:
+
+   window.NICOLE_RSVP_CONFIG = {
+     webAppUrl: ''
+   };
+
+3. Pega la URL /exec entre las comillas, por ejemplo:
+
+   window.NICOLE_RSVP_CONFIG = {
+     webAppUrl: 'https://script.google.com/macros/s/AKfycbziFRmLmnI8PMPe_83huKjqtWVlC_siA7l-pWokbpT7beNnvBbfHVZcFx9YKWXMJe-6/exec'
+   };
+
+4. Guarda config.js.
+5. Sube los archivos modificados de la invitación a GitHub Pages.
+
+PASO 6. COMPROBAR QUE EL SERVICIO RESPONDE
+-------------------------------------------
+Abre la URL /exec que copiaste y agrega al final:
+
+?action=ping
+
+Debe devolver un resultado con “ok”: true y el servicio “Nicole RSVP”.
+
+Después abre la invitación publicada y prueba:
+- Un enlace familiar con pases asignados.
+- Confirmar una cantidad de personas válida.
+- Intentar confirmar más personas que los pases asignados.
+- Abrir el panel administrativo e iniciar sesión con ADMIN_PASSWORD.
+- Pulsar ACTUALIZAR y verificar que la respuesta aparece en el panel.
+- Cambiar el número de WhatsApp desde el panel y guardar.
+- Volver a confirmar con un enlace de prueba y verificar que el mensaje abre al número nuevo.
+
+PASO 7. ASIGNAR PASES A LAS FAMILIAS QUE NO LOS TENÍAN DEFINIDOS
+------------------------------------------------------------------
+En el código de la invitación original había familias sin cantidad explícita de pases. Para no inventar cuántos lugares les corresponden, se dejaron como “PASES SIN ASIGNAR”.
+
+Después de entrar al panel administrativo, pulsa ASIGNAR PASES en esas familias y coloca la cantidad correcta (de 1 a 30). Una invitación sin pases asignados no permite confirmar asistencia afirmativa. La respuesta “No podré asistir” sí puede registrarse.
+
+Las cuatro familias que ya tenían una cantidad explícita se precargan con esos valores:
+- Familia Olmos Prado: 2
+- Familia Olmos Roa: 6
+- Mtra. María de Lourdes Roa Morales: 2
+- Familia Torres Olivos: 2
+
+PASO 8. CONFIRMACIONES QUE YA LLEGARON POR WHATSAPP
+----------------------------------------------------
+WhatsApp no entrega automáticamente a la página los mensajes recibidos. Las confirmaciones anteriores no se pueden recuperar desde WhatsApp mediante este código.
+
+Para incorporarlas al registro:
+1. Entra al panel administrativo.
+2. En “Resumen de asistencia”, captura el nombre y si asistirá o no.
+3. Si asistirá, captura cuántas personas van.
+4. Pulsa GUARDAR RESPUESTA.
+
+Si el navegador donde se usaba la versión anterior conservaba registros manuales en localStorage, aparecerá el botón IMPORTAR REGISTROS ANTIGUOS DE ESTE NAVEGADOR. Ese botón permite copiarlos a la hoja central sin borrar el respaldo local.
+
+QUÉ HACE ESTA VERSIÓN
+---------------------
+- Cada invitación familiar utiliza un identificador para asociar su confirmación.
+- El pase general para jóvenes registra una respuesta por nombre.
+- La respuesta se guarda primero en Google Sheets y después se abre WhatsApp con un mensaje preparado.
+- El panel lee las respuestas de la hoja central desde cualquier dispositivo.
+- Los asistentes se cuentan por la cantidad de personas confirmadas, no por el número de respuestas.
+- El administrador puede cambiar el teléfono receptor y el texto inicial de WhatsApp.
+- Las respuestas antiguas recibidas directamente en WhatsApp se capturan manualmente.
+
+SEGURIDAD Y LIMITACIONES
+------------------------
+- No compartas públicamente la hoja de cálculo.
+- No publiques la contraseña administrativa ni la URL de edición de la hoja.
+- La URL /exec es un endpoint público. Las funciones de administración requieren una sesión temporal iniciada con la contraseña.
+- El número de WhatsApp es visible para los visitantes porque la invitación necesita abrirlo.
+- Este sistema no lee mensajes entrantes de WhatsApp ni verifica que un mensaje haya sido enviado. La fuente oficial del conteo es la respuesta que el invitado guarda en la página.
+- Los enlaces antiguos que solo contienen el nombre de la familia se reconocen por coincidencia con la lista precargada o migrada. Los nuevos enlaces incluyen también un identificador estable.
+- Para cambiar el código de Apps Script después de desplegarlo, crea una nueva versión desde Implementar > Administrar implementaciones > Editar > Nueva versión.
+- Conserva una copia de seguridad de la hoja antes de borrar registros.

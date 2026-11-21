@@ -417,67 +417,223 @@
   // El modo ?preview=1 permite ver también los pétalos sin abrir el sobre.
   if (new URLSearchParams(window.location.search).get('preview') === '1') activatePetals();
 
-  // Confirmación sencilla: solo pregunta si asistirá y solicita el nombre completo.
+  // Confirmación de asistencia conectada a Google Apps Script.
   const rsvpYes = document.getElementById('rsvpYes');
   const rsvpNo = document.getElementById('rsvpNo');
   const rsvpForm = document.getElementById('rsvpForm');
   const rsvpName = document.getElementById('rsvpName');
   const rsvpFeedback = document.getElementById('rsvpFeedback');
-  const sheyllaWhatsApp = '522288560974';
+  const rsvpAttendeesWrap = document.getElementById('rsvpAttendeesWrap');
+  const rsvpAttendees = document.getElementById('rsvpAttendees');
+  const rsvpSubmitButton = document.getElementById('rsvpSubmitButton');
+  const familyParamsForRsvp = new URLSearchParams(window.location.search);
+  const RSVP_WEB_APP_URL = String(window.NICOLE_RSVP_CONFIG?.webAppUrl || '').trim();
+  const DEFAULT_WHATSAPP = '522288560974';
+  let rsvpStatus = 'yes';
+  let activeInvitation = {
+    id: familyParamsForRsvp.get('inv') || '',
+    name: familyParamsForRsvp.get('familia') || '',
+    type: familyParamsForRsvp.get('pase') === 'personal' ? 'personal' : 'family',
+    passes: Number.parseInt(familyParamsForRsvp.get('pases') || '', 10) || (familyParamsForRsvp.get('pase') === 'personal' ? 1 : null)
+  };
+  let rsvpWhatsApp = DEFAULT_WHATSAPP;
+  let rsvpWhatsAppMessage = 'Hola Sheylla, te comparto mi confirmación de asistencia a los XV años de Nicole.';
+  function formatRsvpPhone(value) {
+    const digits = String(value || '').replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('52')) return `+52 ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`;
+    return digits ? `+${digits}` : '';
+  }
 
-  if (rsvpYes && rsvpForm && rsvpName) {
-    rsvpYes.addEventListener('click', () => {
-      rsvpFeedback.hidden = true;
-      rsvpForm.hidden = false;
-      rsvpYes.setAttribute('aria-pressed', 'true');
-      rsvpNo?.setAttribute('aria-pressed', 'false');
-      window.setTimeout(() => rsvpName.focus({ preventScroll: true }), 80);
+  function jsonpRequest(params, timeoutMs = 12000) {
+    if (!RSVP_WEB_APP_URL) return Promise.reject(new Error('Falta configurar la URL de Google Apps Script.'));
+    return new Promise((resolve, reject) => {
+      const callbackName = `__nicoleJsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      const query = new URLSearchParams({ ...params, callback: callbackName, _: String(Date.now()) });
+      let settled = false;
+      const cleanup = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        script.remove();
+        try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+      };
+      const timer = window.setTimeout(() => { cleanup(); reject(new Error('El servicio de confirmaciones no respondió.')); }, timeoutMs);
+      window[callbackName] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con el servicio de confirmaciones.')); };
+      script.src = `${RSVP_WEB_APP_URL}${RSVP_WEB_APP_URL.includes('?') ? '&' : '?'}${query.toString()}`;
+      document.head.appendChild(script);
     });
+  }
 
-    rsvpForm.addEventListener('submit', (event) => {
+  async function postRsvpData(payload) {
+    if (!RSVP_WEB_APP_URL) throw new Error('El servicio de confirmaciones todavía no está configurado.');
+    const body = new URLSearchParams();
+    Object.entries(payload).forEach(([key, value]) => body.set(key, String(value ?? '')));
+    // Apps Script recibe el formulario; no se expone ninguna credencial en la URL.
+    await fetch(RSVP_WEB_APP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: body.toString()
+    });
+  }
+
+  function makeClientId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function openWhatsAppConfirmation(name, status, attendees) {
+    const family = activeInvitation.type === 'personal' ? '' : (activeInvitation.name || familyParamsForRsvp.get('familia') || '');
+    const passes = Number(activeInvitation.passes || familyParamsForRsvp.get('pases') || 0);
+    const result = status === 'yes' ? `Confirmo mi asistencia. Asistiremos ${attendees} ${attendees === 1 ? 'persona' : 'personas'}.` : 'Lamentablemente no podré asistir.';
+    const message = `${rsvpWhatsAppMessage}\nNombre: ${name}.${family ? `\nInvitación: ${family}.` : ''}${passes ? `\nPases asignados: ${passes}.` : ''}\n${result}`;
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${rsvpWhatsApp}?text=${encodeURIComponent(message)}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function configureAttendeeOptions(maxPasses) {
+    if (!rsvpAttendees) return;
+    const max = Number.isInteger(maxPasses) && maxPasses > 0 ? Math.min(maxPasses, 30) : 0;
+    rsvpAttendees.replaceChildren();
+    for (let count = 1; count <= max; count += 1) {
+      const option = document.createElement('option');
+      option.value = String(count);
+      option.textContent = `${count} ${count === 1 ? 'persona' : 'personas'}`;
+      rsvpAttendees.appendChild(option);
+    }
+    rsvpAttendees.disabled = max === 0;
+    const note = rsvpAttendeesWrap?.querySelector('.rsvp-form-note');
+    if (note) note.textContent = max === 0 ? 'La persona organizadora todavía debe asignar los pases a esta invitación.' : `Puedes confirmar hasta ${max} ${max === 1 ? 'persona' : 'personas'}.`;
+  }
+
+  function showRsvpForm(status) {
+    rsvpStatus = status;
+    if (rsvpFeedback) rsvpFeedback.hidden = true;
+    if (rsvpForm) rsvpForm.hidden = false;
+    if (rsvpAttendeesWrap) rsvpAttendeesWrap.hidden = status !== 'yes';
+    if (rsvpSubmitButton) rsvpSubmitButton.textContent = status === 'yes' ? 'GUARDAR Y CONTINUAR A WHATSAPP' : 'REGISTRAR QUE NO ASISTIRÉ';
+    rsvpYes?.setAttribute('aria-pressed', String(status === 'yes'));
+    rsvpNo?.setAttribute('aria-pressed', String(status === 'no'));
+    window.setTimeout(() => rsvpName?.focus({ preventScroll: true }), 80);
+  }
+
+  async function loadRsvpPublicConfig() {
+    configureAttendeeOptions(activeInvitation.passes);
+    if (!RSVP_WEB_APP_URL) return;
+    try {
+      const invitationData = await jsonpRequest({
+        action: 'getInvite',
+        inv: activeInvitation.id,
+        family: familyParamsForRsvp.get('familia') || '',
+        passType: familyParamsForRsvp.get('pase') || ''
+      });
+      if (invitationData?.ok && invitationData.invite) {
+        activeInvitation = invitationData.invite;
+        configureAttendeeOptions(activeInvitation.passes);
+        const greetingName = document.getElementById('familyGreetingName');
+        const passBadge = document.getElementById('familyPassCountBadge');
+        const passValue = document.getElementById('familyPassCountValue');
+        const greeting = document.getElementById('familyGreeting');
+        if (activeInvitation.type === 'family' && greetingName && activeInvitation.name) {
+          greetingName.textContent = activeInvitation.name;
+          greetingName.hidden = false;
+          if (greeting) greeting.hidden = false;
+          if (Number(activeInvitation.passes) > 0 && passBadge && passValue) {
+            passValue.textContent = String(activeInvitation.passes);
+            passBadge.hidden = false;
+          } else if (passBadge) passBadge.hidden = true;
+        }
+      }
+      const config = await jsonpRequest({ action: 'publicConfig' });
+      if (config?.ok) {
+        rsvpWhatsApp = String(config.settings?.whatsapp || DEFAULT_WHATSAPP).replace(/\D/g, '') || DEFAULT_WHATSAPP;
+        rsvpWhatsAppMessage = String(config.settings?.message || rsvpWhatsAppMessage);
+        const publicPhone = document.getElementById('rsvpContactNumber');
+        if (publicPhone) publicPhone.textContent = formatRsvpPhone(rsvpWhatsApp);
+      }
+    } catch (error) {
+      console.warn('No se pudo cargar la configuración de RSVP:', error);
+    }
+  }
+
+  rsvpYes?.addEventListener('click', () => showRsvpForm('yes'));
+  rsvpNo?.addEventListener('click', () => showRsvpForm('no'));
+
+  if (rsvpForm && rsvpName) {
+    rsvpForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const guestName = rsvpName.value.trim().replace(/\s+/g, ' ');
       if (guestName.split(' ').length < 2 || guestName.length < 5) {
-        rsvpFeedback.textContent = 'Escribe tu nombre y apellidos para confirmar.';
+        rsvpFeedback.textContent = 'Escribe tu nombre y apellidos para registrar tu respuesta.';
         rsvpFeedback.hidden = false;
         rsvpName.focus();
         return;
       }
-      const params = new URLSearchParams(window.location.search);
-      const family = params.get('familia');
-      const invitee = params.get('invitado');
-      const familyLine = family ? `\nInvitación dirigida a: ${family}.` : (params.get('pase') === 'personal' ? `\nPase personal para jóvenes: 1 persona.` : '');
-      const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
-      const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? `\nPases asignados: ${assignedPasses}.` : '';
-      const message = `Hola Sheylla, soy ${guestName}.${familyLine}${passesLine} Confirmo mi asistencia a los XV años de Nicole Roa Barragán, el 21 de noviembre de 2026. ¡Muchas gracias por la invitación!`;
-      const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-      rsvpFeedback.textContent = 'Se abrió WhatsApp con tu confirmación. Sheylla podrá registrar tu respuesta en el panel administrativo.';
-      rsvpFeedback.hidden = false;
+      if (!activeInvitation.id && !activeInvitation.name && activeInvitation.type !== 'personal') {
+        rsvpFeedback.textContent = 'No se pudo identificar esta invitación. Abre el enlace personalizado que te enviaron.';
+        rsvpFeedback.hidden = false;
+        return;
+      }
+      const attendees = rsvpStatus === 'yes' ? Number.parseInt(rsvpAttendees?.value || '0', 10) : 0;
+      const maxPasses = Number(activeInvitation.passes || 0);
+      if (rsvpStatus === 'yes' && maxPasses < 1) {
+        rsvpFeedback.textContent = 'Esta invitación todavía no tiene pases asignados. Por favor, comunícate con la persona que te invitó.';
+        rsvpFeedback.hidden = false;
+        return;
+      }
+      if (rsvpStatus === 'yes' && (!Number.isInteger(attendees) || attendees < 1 || attendees > maxPasses)) {
+        rsvpFeedback.textContent = `La cantidad de asistentes no puede superar los ${maxPasses} pases disponibles.`;
+        rsvpFeedback.hidden = false;
+        return;
+      }
+      const responseId = makeClientId();
+      const data = {
+        action: 'saveRsvp',
+        responseId,
+        invitationId: activeInvitation.id,
+        legacyFamily: activeInvitation.name || familyParamsForRsvp.get('familia') || '',
+        passType: activeInvitation.type,
+        guestName,
+        status: rsvpStatus,
+        attendees
+      };
+      const submit = rsvpSubmitButton;
+      if (submit) { submit.disabled = true; submit.textContent = 'REGISTRANDO RESPUESTA…'; }
+      try {
+        await postRsvpData(data);
+        let saved = false;
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          await new Promise(resolve => window.setTimeout(resolve, 450));
+          try {
+            const check = await jsonpRequest({ action: 'checkResponse', responseId });
+            if (check?.ok && check.exists) { saved = true; break; }
+          } catch (_) {}
+        }
+        if (!saved) throw new Error('No pudimos verificar que la respuesta se guardara.');
+        rsvpFeedback.textContent = rsvpStatus === 'yes'
+          ? `¡Gracias, ${guestName}! Tu asistencia quedó registrada para ${attendees} ${attendees === 1 ? 'persona' : 'personas'}. Ahora puedes avisar a Sheylla por WhatsApp.`
+          : `Gracias, ${guestName}. Tu respuesta quedó registrada. Ahora puedes avisar a Sheylla por WhatsApp.`;
+        rsvpFeedback.hidden = false;
+        openWhatsAppConfirmation(guestName, rsvpStatus, attendees);
+        if (submit) submit.textContent = 'RESPUESTA REGISTRADA';
+      } catch (error) {
+        // Respaldo para no bloquear la comunicación durante la activación o ante una caída temporal del servicio.
+        openWhatsAppConfirmation(guestName, rsvpStatus, attendees);
+        rsvpFeedback.textContent = `No pudimos verificar el registro automático (${error.message}). Se abrió WhatsApp para avisar a Sheylla; ella tendrá que capturar esta respuesta manualmente en el panel.`;
+        rsvpFeedback.hidden = false;
+        if (submit) { submit.disabled = false; submit.textContent = rsvpStatus === 'yes' ? 'REINTENTAR CONFIRMACIÓN' : 'REINTENTAR REGISTRO'; }
+      }
     });
   }
-
-  if (rsvpNo) {
-    rsvpNo.addEventListener('click', () => {
-      const params = new URLSearchParams(window.location.search);
-      const family = params.get('familia');
-      const invitee = params.get('invitado');
-      const familyLine = family ? ` Invitación dirigida a: ${family}.` : (params.get('pase') === 'personal' ? ` Pase personal para jóvenes: 1 persona.` : '');
-      const assignedPasses = Number.parseInt(params.get('pases') || '', 10);
-      const passesLine = family && Number.isInteger(assignedPasses) && assignedPasses > 0 ? ` Pases asignados: ${assignedPasses}.` : '';
-      const message = `Hola Sheylla.${familyLine}${passesLine} Muchas gracias por la invitación a los XV años de Nicole. Lamentablemente no podré asistir.`;
-      const url = `https://wa.me/${sheyllaWhatsApp}?text=${encodeURIComponent(message)}`;
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-    });
-  }
+  loadRsvpPublicConfig();
 
   // Cuenta regresiva hasta el inicio de la ceremonia: 21/11/2026 a las 18:00, Xalapa.
   const eventDate = new Date('2026-11-21T18:00:00-06:00').getTime();
@@ -970,10 +1126,7 @@
     }
   }
 
-  // Generador local de enlaces. No requiere Google Apps Script ni base de datos.
-  // IMPORTANTE: al estar en una web estática, esta contraseña es una barrera visual,
-  // no autenticación segura; puede descubrirse inspeccionando el código del navegador.
-  const FAMILY_LINK_ACCESS_CODE = '12345';
+  // Panel administrativo conectado a Google Apps Script / Google Sheets.
   const familyAdminToggle = document.getElementById('familyAdminToggle');
   const familyAdminPanel = document.getElementById('familyAdminPanel');
   const familyPasswordStep = document.getElementById('familyPasswordStep');
@@ -995,336 +1148,15 @@
   const familyPublicUrlWrap = document.getElementById('familyPublicUrlWrap');
   const familyPublicUrlInput = document.getElementById('familyPublicUrl');
   const familyPublicUrlError = document.getElementById('familyPublicUrlError');
-  const FAMILY_PUBLIC_URL_STORAGE_KEY = 'nicoleXvPublicBaseUrl';
-  const needsPublicBaseUrl = window.location.protocol !== 'https:';
-
-  // Un archivo abierto desde file:// no tiene una dirección compartible.
-  // En ese caso solicitamos la URL pública de GitHub Pages una sola vez.
-  if (familyPublicUrlWrap) {
-    familyPublicUrlWrap.hidden = !needsPublicBaseUrl;
-  }
-  if (needsPublicBaseUrl && familyPublicUrlInput) {
-    try {
-      familyPublicUrlInput.value = localStorage.getItem(FAMILY_PUBLIC_URL_STORAGE_KEY) || '';
-    } catch (_) {
-      // Si el navegador bloquea localStorage, el usuario aún puede pegar la URL manualmente.
-    }
-  }
-
-    const familyPassCountInput = document.getElementById('familyPassCountInput');
+  const familyPassCountInput = document.getElementById('familyPassCountInput');
   const familyPassCountWrap = document.getElementById('familyPassCountWrap');
   const predefinedFamilyLinks = document.getElementById('predefinedFamilyLinks');
   const predefinedFamilyLinksFeedback = document.getElementById('predefinedFamilyLinksFeedback');
   const registeredFamilyCount = document.getElementById('registeredFamilyCount');
-  const EXTRA_FAMILY_LINKS_STORAGE_KEY = 'nicoleXvExtraFamilyLinks_v1';
-
-  // Familias que la familia organizadora indicó para quedar precargadas en el panel.
-  // Solo se asignan cantidades cuando el mensaje original especificó explícitamente los pases.
-  const PRESET_FAMILIES = [
-    { name: 'Familia Olmos Dorantes' },
-    { name: 'Familia Roa Ficache' },
-    { name: 'Sr. Humberto Corona Padilla y Esposa' },
-    { name: 'Sra. Zoila Corona Padilla' },
-    { name: 'Familia Olmos García' },
-    { name: 'Mtro. Gandhi Olmos García y Familia' },
-    { name: 'Familia Olmos Prado', passes: 2 },
-    { name: 'Familia Olmos Roa', passes: 6 },
-    { name: 'Sra. María Luisa Ficache Martínez' },
-    { name: 'Mtra. María de Lourdes Roa Morales', passes: 2 },
-    { name: 'Familia Torres Olivos', passes: 2 },
-    { name: 'Itzel Roa Franco e Hijo' }
-  ];
-
-  function getInvitationBaseUrl() {
-    if (!needsPublicBaseUrl) {
-      const current = new URL(window.location.href);
-      current.search = '';
-      current.hash = '';
-      current.pathname = current.pathname.replace(/index\.html?$/i, '');
-      if (!current.pathname.endsWith('/')) current.pathname += '/';
-      return current;
-    }
-    const publicBaseText = familyPublicUrlInput?.value.trim() || '';
-    if (!publicBaseText) return null;
-    try {
-      const publicBase = new URL(publicBaseText);
-      if (publicBase.protocol !== 'https:') return null;
-      publicBase.search = '';
-      publicBase.hash = '';
-      publicBase.pathname = publicBase.pathname.replace(/index\.html?$/i, '');
-      if (!publicBase.pathname.endsWith('/')) publicBase.pathname += '/';
-      try { localStorage.setItem(FAMILY_PUBLIC_URL_STORAGE_KEY, publicBase.href); } catch (_) {}
-      return publicBase;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function buildInvitationLink(record) {
-    const baseUrl = getInvitationBaseUrl();
-    if (!baseUrl) return '';
-    const url = new URL(baseUrl.href);
-    url.searchParams.delete('preview');
-    url.searchParams.delete('familia');
-    url.searchParams.delete('pase');
-    url.searchParams.delete('invitado');
-    url.searchParams.delete('pases');
-    if (record.type === 'personal') {
-      url.searchParams.set('pase', 'personal');
-      url.searchParams.set('pases', '1');
-      // No se agrega parámetro de nombre: es un enlace general para jóvenes.
-    } else {
-      url.searchParams.set('familia', record.name);
-      const count = Number.parseInt(record.passes, 10);
-      if (Number.isInteger(count) && count > 0 && count <= 30) url.searchParams.set('pases', String(count));
-    }
-    return url.toString();
-  }
-
-  async function copyTextValue(text) {
-    let copied = false;
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-        copied = true;
-      }
-    } catch (error) {
-      console.warn('Portapapeles moderno no disponible; se usará método alternativo.', error);
-    }
-    if (!copied) {
-      const helper = document.createElement('textarea');
-      helper.value = text;
-      helper.setAttribute('readonly', '');
-      helper.style.position = 'fixed';
-      helper.style.opacity = '0';
-      helper.style.pointerEvents = 'none';
-      document.body.appendChild(helper);
-      helper.select();
-      try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
-      helper.remove();
-    }
-    return copied;
-  }
-
-  function readExtraFamilyLinks() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(EXTRA_FAMILY_LINKS_STORAGE_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed.filter(item => item && typeof item.name === 'string') : [];
-    } catch (_) { return []; }
-  }
-
-  function saveExtraFamilyLink(record) {
-    const current = readExtraFamilyLinks();
-    const normalized = record.name.toLocaleLowerCase('es-MX');
-    const existing = current.findIndex(item => item.name.toLocaleLowerCase('es-MX') === normalized);
-    if (existing >= 0) current[existing] = record;
-    else current.push(record);
-    try { localStorage.setItem(EXTRA_FAMILY_LINKS_STORAGE_KEY, JSON.stringify(current)); } catch (_) {}
-  }
-
-  function renderFamilyLinkCard(record, index, isPreset) {
-    const card = document.createElement('article');
-    card.className = 'registered-family-card';
-    const top = document.createElement('div');
-    top.className = 'registered-family-main';
-    const name = document.createElement('strong');
-    name.className = 'registered-family-name';
-    name.textContent = record.name;
-    top.appendChild(name);
-
-    const passes = Number.parseInt(record.passes, 10);
-    if (Number.isInteger(passes) && passes > 0 && passes <= 30) {
-      const badgeWrap = document.createElement('span');
-      badgeWrap.className = 'registered-pass-badge';
-      badgeWrap.setAttribute('role', 'img');
-      badgeWrap.setAttribute('aria-label', `Pases asignados: ${passes}`);
-      const badgeImage = document.createElement('img');
-      badgeImage.src = 'assets/pase-cantidad.png';
-      badgeImage.alt = '';
-      const badgeNumber = document.createElement('b');
-      badgeNumber.textContent = String(passes);
-      badgeWrap.append(badgeImage, badgeNumber);
-      top.appendChild(badgeWrap);
-    }
-    card.appendChild(top);
-
-    const link = buildInvitationLink({ ...record, type: 'family' });
-    const linkInput = document.createElement('input');
-    linkInput.className = 'registered-family-url';
-    linkInput.type = 'text';
-    linkInput.readOnly = true;
-    linkInput.value = link || 'Configura la URL pública de GitHub Pages';
-    linkInput.setAttribute('aria-label', `Enlace para ${record.name}`);
-    card.appendChild(linkInput);
-
-    const actions = document.createElement('div');
-    actions.className = 'registered-family-actions';
-    const copyButton = document.createElement('button');
-    copyButton.type = 'button';
-    copyButton.className = 'family-admin-primary registered-copy-button';
-    copyButton.textContent = 'COPIAR LINK';
-    copyButton.disabled = !link;
-    const feedback = document.createElement('span');
-    feedback.className = 'registered-family-feedback';
-    feedback.setAttribute('role', 'status');
-    copyButton.addEventListener('click', async () => {
-      const copied = await copyTextValue(link);
-      feedback.textContent = copied ? '¡Enlace copiado!' : 'Selecciona el enlace para copiarlo.';
-      if (!copied) { linkInput.focus(); linkInput.select(); }
-    });
-    actions.append(copyButton, feedback);
-    if (!isPreset) {
-      const removeButton = document.createElement('button');
-      removeButton.type = 'button';
-      removeButton.className = 'family-admin-secondary registered-remove-button';
-      removeButton.textContent = 'QUITAR';
-      removeButton.addEventListener('click', () => {
-        const current = readExtraFamilyLinks();
-        current.splice(index, 1);
-        try { localStorage.setItem(EXTRA_FAMILY_LINKS_STORAGE_KEY, JSON.stringify(current)); } catch (_) {}
-        renderRegisteredFamilies();
-      });
-      actions.appendChild(removeButton);
-    }
-    card.appendChild(actions);
-    return card;
-  }
-
-  function renderRegisteredFamilies() {
-    if (!predefinedFamilyLinks) return;
-    predefinedFamilyLinks.replaceChildren();
-    const extras = readExtraFamilyLinks();
-    PRESET_FAMILIES.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, true)));
-    extras.forEach((record, index) => predefinedFamilyLinks.appendChild(renderFamilyLinkCard(record, index, false)));
-    if (registeredFamilyCount) {
-      const total = PRESET_FAMILIES.length + extras.length;
-      registeredFamilyCount.textContent = `${total} ${total === 1 ? 'FAMILIA' : 'FAMILIAS'}`;
-    }
-    if (predefinedFamilyLinksFeedback) {
-      predefinedFamilyLinksFeedback.textContent = needsPublicBaseUrl && !getInvitationBaseUrl()
-        ? 'Pega la dirección HTTPS de GitHub Pages arriba para activar los enlaces y sus botones de copia.'
-        : `${PRESET_FAMILIES.length + extras.length} invitaciones familiares listas para copiar.`;
-    }
-  }
-
-  familyPublicUrlInput?.addEventListener('input', renderRegisteredFamilies);
-
-  if (familyAdminToggle && familyAdminPanel) {
-    familyAdminToggle.addEventListener('click', () => {
-      const willOpen = familyAdminPanel.hidden;
-      familyAdminPanel.hidden = !willOpen;
-      familyAdminToggle.setAttribute('aria-expanded', String(willOpen));
-      if (willOpen && familyPasswordStep && !familyPasswordStep.hidden) {
-        window.setTimeout(() => familyAdminPassword?.focus({ preventScroll: true }), 80);
-      }
-    });
-  }
-
-  if (familyPasswordForm && familyAdminPassword && familyGeneratorStep && familyPasswordStep) {
-    familyPasswordForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (familyAdminPassword.value === FAMILY_LINK_ACCESS_CODE) {
-        familyPasswordError.hidden = true;
-        familyPasswordStep.hidden = true;
-        familyGeneratorStep.hidden = false;
-        renderRegisteredFamilies();
-        window.setTimeout(() => familyNameInput?.focus({ preventScroll: true }), 80);
-      } else {
-        familyPasswordError.hidden = false;
-        familyAdminPassword.select();
-      }
-    });
-  }
-
-  function updateInvitationLinkTypeUI() {
-    const personalMode = invitationLinkType?.value === 'personal';
-    if (familyNameLabel) familyNameLabel.hidden = personalMode;
-    if (familyNameInput) {
-      familyNameInput.hidden = personalMode;
-      familyNameInput.required = !personalMode;
-      familyNameInput.disabled = personalMode;
-      familyNameInput.placeholder = 'Ej. Familia Arreola';
-      if (personalMode) familyNameInput.value = '';
-    }
-    if (familyPersonalModeNote) familyPersonalModeNote.hidden = !personalMode;
-    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personalMode ? 'Enlace general de pase personal · 1 pase' : 'Enlace de invitación familiar';
-    if (familyPassCountWrap) familyPassCountWrap.hidden = personalMode;
-    const title = familyGeneratorStep?.querySelector('.family-admin-create-title');
-    if (title) title.textContent = personalMode ? 'Crear pase general para jóvenes' : 'Agregar otra invitación familiar';
-    const submitButton = familyLinkForm?.querySelector('button[type="submit"]');
-    if (submitButton) submitButton.textContent = personalMode ? 'GENERAR PASE PARA JÓVENES' : 'GENERAR LINK';
-  }
-  invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI);
-  updateInvitationLinkTypeUI();
-
-  if (familyLinkForm && familyNameInput && familyGeneratedLink && familyLinkResult) {
-    familyLinkForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const type = invitationLinkType?.value === 'personal' ? 'personal' : 'family';
-      const name = type === 'personal' ? '' : familyNameInput.value
-        .replace(/[<>]/g, '')
-        .replace(/[\u0000-\u001F\u007F]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 70);
-      if (type === 'family' && !name) { familyNameInput.focus(); return; }
-
-      const passCount = type === 'family' ? Number.parseInt(familyPassCountInput?.value || '', 10) : 1;
-      if (type === 'family' && familyPassCountInput?.value && (!Number.isInteger(passCount) || passCount < 1 || passCount > 30)) {
-        familyPassCountInput.focus();
-        return;
-      }
-      const record = { name: name || undefined, type, passes: type === 'personal' ? 1 : (Number.isInteger(passCount) ? passCount : undefined) };
-      const personalizedUrl = buildInvitationLink(record);
-      if (!personalizedUrl) {
-        if (familyPublicUrlError) {
-          familyPublicUrlError.textContent = 'Configura primero una dirección HTTPS válida de GitHub Pages. No se pueden compartir enlaces file:/// o localhost.';
-          familyPublicUrlError.hidden = false;
-        }
-        familyPublicUrlInput?.focus();
-        return;
-      }
-      if (familyPublicUrlError) familyPublicUrlError.hidden = true;
-      familyGeneratedLink.value = personalizedUrl;
-      familyLinkResult.hidden = false;
-      if (type === 'family') {
-        saveExtraFamilyLink({ name, passes: record.passes || null });
-        renderRegisteredFamilies();
-      }
-      if (familyCopyFeedback) familyCopyFeedback.textContent = type === 'personal'
-        ? 'Enlace general generado: Pase personal para jóvenes · 1 pase · sin nombre.'
-        : 'Enlace público generado. Ya puedes copiarlo y compartirlo por WhatsApp.';
-    });
-  }
-
-  async function copyFamilyLink() {
-    if (!familyGeneratedLink) return;
-    const copied = await copyTextValue(familyGeneratedLink.value);
-    if (familyCopyFeedback) {
-      familyCopyFeedback.textContent = copied
-        ? '¡Enlace copiado! Ya puedes pegarlo en WhatsApp.'
-        : 'No se pudo copiar automáticamente. Mantén presionado el enlace para copiarlo.';
-    }
-    if (!copied) { familyGeneratedLink.focus(); familyGeneratedLink.select(); }
-  }
-
-  familyCopyLink?.addEventListener('click', copyFamilyLink);
-  familyNewLink?.addEventListener('click', () => {
-    if (familyNameInput) {
-      familyNameInput.value = '';
-      if (!familyNameInput.hidden) familyNameInput.focus();
-    }
-    if (familyPassCountInput) familyPassCountInput.value = '';
-    if (familyLinkResult) familyLinkResult.hidden = true;
-    if (familyCopyFeedback) familyCopyFeedback.textContent = '';
-  });
-
-  // Registro local: una persona por cada confirmación afirmativa.
-  // Las respuestas llegan por WhatsApp y se capturan manualmente en este navegador.
-  const ATTENDANCE_STORAGE_KEY = 'nicoleXvAttendanceRegister_v1';
   const attendanceForm = document.getElementById('attendanceAdminForm');
   const attendanceNameInput = document.getElementById('attendanceAdminName');
   const attendanceStatusInput = document.getElementById('attendanceAdminStatus');
+  const attendanceAttendeesInput = document.getElementById('attendanceAdminAttendees');
   const attendanceFeedback = document.getElementById('attendanceAdminFeedback');
   const attendanceList = document.getElementById('attendanceRecordList');
   const attendanceResponses = document.getElementById('attendanceResponses');
@@ -1334,112 +1166,414 @@
   const attendanceRefresh = document.getElementById('attendanceRefresh');
   const attendanceExportPdf = document.getElementById('attendanceExportPdf');
   const attendanceClear = document.getElementById('attendanceClearAll');
+  const attendanceImportLegacy = document.getElementById('attendanceImportLegacy');
+  const whatsappNumberInput = document.getElementById('adminWhatsAppNumber');
+  const whatsappMessageInput = document.getElementById('adminWhatsAppMessage');
+  const whatsappSettingsForm = document.getElementById('adminWhatsAppSettingsForm');
+  const whatsappSettingsFeedback = document.getElementById('adminWhatsAppSettingsFeedback');
+  const FAMILY_PUBLIC_URL_STORAGE_KEY = 'nicoleXvPublicBaseUrl';
+  const ATTENDANCE_STORAGE_KEY = 'nicoleXvAttendanceRegister_v1';
+  const EXTRA_FAMILY_LINKS_STORAGE_KEY = 'nicoleXvExtraFamilyLinks_v1';
+  const needsPublicBaseUrl = window.location.protocol !== 'https:';
+  let adminToken = '';
+  let adminData = { invites: [], responses: [], settings: {} };
   let attendanceRecords = [];
   let attendancePdfRefreshed = false;
+
+  if (familyPublicUrlWrap) familyPublicUrlWrap.hidden = !needsPublicBaseUrl;
+  if (needsPublicBaseUrl && familyPublicUrlInput) {
+    try { familyPublicUrlInput.value = localStorage.getItem(FAMILY_PUBLIC_URL_STORAGE_KEY) || ''; } catch (_) {}
+  }
+
+  function getInvitationBaseUrl() {
+    if (!needsPublicBaseUrl) {
+      const current = new URL(window.location.href);
+      current.search = ''; current.hash = '';
+      current.pathname = current.pathname.replace(/index\.html?$/i, '');
+      if (!current.pathname.endsWith('/')) current.pathname += '/';
+      return current;
+    }
+    const value = familyPublicUrlInput?.value.trim() || '';
+    if (!value) return null;
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:') return null;
+      url.search = ''; url.hash = '';
+      url.pathname = url.pathname.replace(/index\.html?$/i, '');
+      if (!url.pathname.endsWith('/')) url.pathname += '/';
+      try { localStorage.setItem(FAMILY_PUBLIC_URL_STORAGE_KEY, url.href); } catch (_) {}
+      return url;
+    } catch (_) { return null; }
+  }
+
+  function buildInvitationLink(record) {
+    const base = getInvitationBaseUrl();
+    if (!base) return '';
+    const url = new URL(base.href);
+    url.search = '';
+    if (record.id) url.searchParams.set('inv', record.id);
+    if (record.type === 'personal') {
+      url.searchParams.set('pase', 'personal');
+      url.searchParams.set('pases', '1');
+    } else {
+      url.searchParams.set('familia', record.name || '');
+      if (Number(record.passes) > 0) url.searchParams.set('pases', String(record.passes));
+    }
+    return url.toString();
+  }
+
+  async function copyTextValue(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+    } catch (_) {}
+    const helper = document.createElement('textarea');
+    helper.value = text; helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed'; helper.style.opacity = '0'; helper.style.pointerEvents = 'none';
+    document.body.appendChild(helper); helper.select();
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch (_) {}
+    helper.remove(); return copied;
+  }
+
+  function newAdminClientId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID().replace(/-/g, '').slice(0, 24);
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 16)}`;
+  }
+
+  async function adminPost(payload) {
+    if (!RSVP_WEB_APP_URL) throw new Error('Primero configura la URL del servicio de Google Apps Script en config.js.');
+    const body = new URLSearchParams();
+    Object.entries(payload).forEach(([key, value]) => body.set(key, typeof value === 'object' ? JSON.stringify(value) : String(value ?? '')));
+    await fetch(RSVP_WEB_APP_URL, {
+      method: 'POST', mode: 'no-cors', redirect: 'follow',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: body.toString()
+    });
+  }
 
   function setAttendancePdfReady(ready) {
     attendancePdfRefreshed = Boolean(ready);
     if (attendanceExportPdf) attendanceExportPdf.disabled = !attendancePdfRefreshed;
   }
 
-  function loadAttendanceRecords() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(ATTENDANCE_STORAGE_KEY) || '[]');
-      attendanceRecords = Array.isArray(parsed) ? parsed.filter((item) => item && typeof item.name === 'string') : [];
-    } catch (_) {
-      attendanceRecords = [];
-    }
+  function setAdminFeedback(message, isError = false) {
+    if (!attendanceFeedback) return;
+    attendanceFeedback.textContent = message;
+    attendanceFeedback.dataset.state = isError ? 'error' : 'success';
   }
 
-  function saveAttendanceRecords() {
-    try {
-      localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendanceRecords));
-      if (attendanceFeedback) attendanceFeedback.textContent = 'Registro guardado en este navegador.';
-    } catch (_) {
-      if (attendanceFeedback) attendanceFeedback.textContent = 'No se pudo guardar. Revisa el almacenamiento del navegador.';
-    }
+  function renderRegisteredFamilies() {
+    if (!predefinedFamilyLinks) return;
+    predefinedFamilyLinks.replaceChildren();
+    const invites = adminData.invites || [];
+    invites.forEach((record) => {
+      const card = document.createElement('article');
+      card.className = 'registered-family-card';
+      const top = document.createElement('div'); top.className = 'registered-family-main';
+      const name = document.createElement('strong'); name.className = 'registered-family-name';
+      name.textContent = record.type === 'personal' ? 'Pase general para jóvenes' : record.name;
+      top.appendChild(name);
+      const passCount = Number(record.passes);
+      if (passCount > 0) {
+        const badge = document.createElement('span'); badge.className = 'registered-pass-badge';
+        const img = document.createElement('img'); img.src = 'assets/pase-cantidad.png'; img.alt = '';
+        const value = document.createElement('b'); value.textContent = String(passCount);
+        badge.append(img, value); top.appendChild(badge);
+      } else if (record.type !== 'personal') {
+        const missing = document.createElement('span'); missing.className = 'registered-family-feedback';
+        missing.textContent = 'PASES SIN ASIGNAR'; top.appendChild(missing);
+      }
+      card.appendChild(top);
+      const url = buildInvitationLink(record);
+      const input = document.createElement('input'); input.className = 'registered-family-url';
+      input.type = 'text'; input.readOnly = true; input.value = url || 'Configura la URL pública de GitHub Pages';
+      card.appendChild(input);
+      const actions = document.createElement('div'); actions.className = 'registered-family-actions';
+      const copy = document.createElement('button'); copy.type = 'button'; copy.className = 'family-admin-primary registered-copy-button';
+      copy.textContent = 'COPIAR LINK'; copy.disabled = !url;
+      const feedback = document.createElement('span'); feedback.className = 'registered-family-feedback'; feedback.setAttribute('role', 'status');
+      copy.addEventListener('click', async () => { const ok = await copyTextValue(url); feedback.textContent = ok ? '¡Enlace copiado!' : 'Selecciona el enlace para copiarlo.'; if (!ok) { input.focus(); input.select(); } });
+      actions.append(copy, feedback);
+      const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'family-admin-secondary registered-remove-button';
+      edit.textContent = Number(record.passes) > 0 || record.type === 'personal' ? 'EDITAR' : 'ASIGNAR PASES';
+      edit.addEventListener('click', async () => {
+        const nextName = record.type === 'personal' ? record.name : window.prompt('Nombre de la familia o invitado:', record.name);
+        if (nextName === null) return;
+        const nextPassText = record.type === 'personal' ? '1' : window.prompt('¿Cuántos pases tiene asignados? (1 a 30)', String(record.passes || ''));
+        if (nextPassText === null) return;
+        const nextPasses = Number.parseInt(nextPassText, 10);
+        if (!Number.isInteger(nextPasses) || nextPasses < 1 || nextPasses > 30) { window.alert('Escribe una cantidad de pases entre 1 y 30.'); return; }
+        try {
+          await adminPost({ action: 'updateInvite', token: adminToken, invitation: { id: record.id, name: String(nextName).trim(), type: record.type, passes: nextPasses } });
+          await new Promise(resolve => window.setTimeout(resolve, 350)); await refreshAdminData();
+          const updated = adminData.invites.find(item => item.id === record.id);
+          if (!updated || Number(updated.passes) !== nextPasses) throw new Error('No se pudo verificar el cambio de pases en el registro central.');
+        } catch (error) { feedback.textContent = error.message; }
+      });
+      actions.appendChild(edit);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'family-admin-secondary registered-remove-button';
+      remove.textContent = 'QUITAR'; remove.addEventListener('click', async () => {
+        if (!window.confirm(`¿Quitar el enlace de ${record.name || 'este pase'}?`)) return;
+        try {
+          await adminPost({ action: 'deleteInvite', token: adminToken, invitationId: record.id });
+          await new Promise(resolve => window.setTimeout(resolve, 350)); await refreshAdminData();
+          if (adminData.invites.some(item => item.id === record.id)) throw new Error('No se pudo verificar que se retirara el enlace.');
+        } catch (error) { feedback.textContent = error.message; }
+      });
+      actions.appendChild(remove); card.appendChild(actions); predefinedFamilyLinks.appendChild(card);
+    });
+    if (registeredFamilyCount) registeredFamilyCount.textContent = `${invites.length} ${invites.length === 1 ? 'INVITACIÓN' : 'INVITACIONES'}`;
+    if (predefinedFamilyLinksFeedback) predefinedFamilyLinksFeedback.textContent = needsPublicBaseUrl && !getInvitationBaseUrl()
+      ? 'Pega la dirección HTTPS de GitHub Pages arriba para activar los enlaces.'
+      : `${invites.length} enlaces administrados desde el registro central.`;
   }
 
   function renderAttendanceRecords() {
     if (!attendanceList) return;
     attendanceList.replaceChildren();
-    const yesRecords = attendanceRecords.filter((item) => item.status === 'yes');
-    const noRecords = attendanceRecords.filter((item) => item.status === 'no');
-    // Una confirmación afirmativa equivale a una persona; no se capturan acompañantes.
-    const guestTotal = yesRecords.length;
+    const yesRecords = attendanceRecords.filter(record => record.status === 'yes');
+    const noRecords = attendanceRecords.filter(record => record.status === 'no');
+    const guestTotal = yesRecords.reduce((sum, record) => sum + (Number(record.attendees) || 1), 0);
     if (attendanceResponses) attendanceResponses.textContent = String(attendanceRecords.length);
     if (attendanceGuests) attendanceGuests.textContent = String(guestTotal);
     if (attendanceDeclines) attendanceDeclines.textContent = String(noRecords.length);
     if (attendanceListCount) attendanceListCount.textContent = `${attendanceRecords.length} ${attendanceRecords.length === 1 ? 'registro' : 'registros'}`;
-
     if (!attendanceRecords.length) {
-      const empty = document.createElement('li');
-      empty.className = 'attendance-empty';
-      empty.textContent = 'Todavía no hay respuestas capturadas.';
-      attendanceList.appendChild(empty);
+      const empty = document.createElement('li'); empty.className = 'attendance-empty';
+      empty.textContent = 'Todavía no hay respuestas registradas.'; attendanceList.appendChild(empty); return;
+    }
+    attendanceRecords.forEach(record => {
+      const item = document.createElement('li'); item.className = 'attendance-record';
+      const detail = document.createElement('div');
+      const name = document.createElement('strong'); name.textContent = record.guestName || record.name || 'Invitado';
+      const meta = document.createElement('small');
+      const count = Number(record.attendees) || 0;
+      meta.textContent = record.status === 'yes' ? `Confirmó asistencia · ${count} ${count === 1 ? 'persona' : 'personas'}` : 'No podrá asistir';
+      detail.append(name, meta);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×';
+      remove.setAttribute('aria-label', `Eliminar registro de ${name.textContent}`);
+      remove.addEventListener('click', async () => {
+        if (!window.confirm(`¿Eliminar la respuesta de ${name.textContent}?`)) return;
+        try { await adminPost({ action: 'deleteResponse', token: adminToken, responseId: record.responseId || record.id }); await refreshAdminData(); setAttendancePdfReady(false); }
+        catch (error) { setAdminFeedback(error.message, true); }
+      });
+      item.append(detail, remove); attendanceList.appendChild(item);
+    });
+  }
+
+  async function refreshAdminData() {
+    if (!adminToken) throw new Error('La sesión administrativa no está activa.');
+    const data = await jsonpRequest({ action: 'adminData', token: adminToken });
+    if (!data?.ok) throw new Error(data?.error || 'No se pudo leer el registro central.');
+    adminData = data.data || { invites: [], responses: [], settings: {} };
+    attendanceRecords = Array.isArray(adminData.responses) ? adminData.responses : [];
+    renderRegisteredFamilies(); renderAttendanceRecords(); setAttendancePdfReady(true);
+    if (whatsappNumberInput) whatsappNumberInput.value = adminData.settings?.whatsapp || '522288560974';
+    if (whatsappMessageInput) whatsappMessageInput.value = adminData.settings?.message || 'Hola Sheylla, te comparto mi confirmación de asistencia a los XV años de Nicole.';
+    rsvpWhatsApp = String(adminData.settings?.whatsapp || '522288560974').replace(/\D/g, '') || '522288560974';
+    rsvpWhatsAppMessage = String(adminData.settings?.message || 'Hola Sheylla, te comparto mi confirmación de asistencia a los XV años de Nicole.');
+    const publicPhone = document.getElementById('rsvpContactNumber');
+    if (publicPhone) publicPhone.textContent = formatRsvpPhone(rsvpWhatsApp);
+    return adminData;
+  }
+
+  familyPublicUrlInput?.addEventListener('input', renderRegisteredFamilies);
+  familyAdminToggle?.addEventListener('click', () => {
+    if (!familyAdminPanel) return;
+    const opening = familyAdminPanel.hidden;
+    familyAdminPanel.hidden = !opening;
+    familyAdminToggle.setAttribute('aria-expanded', String(opening));
+    if (opening && familyPasswordStep && !familyPasswordStep.hidden) window.setTimeout(() => familyAdminPassword?.focus({ preventScroll: true }), 80);
+  });
+
+  familyPasswordForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!RSVP_WEB_APP_URL) {
+      if (familyPasswordError) { familyPasswordError.textContent = 'El servicio central aún no está configurado. Consulta el archivo CONFIGURACION_APPS_SCRIPT.txt.'; familyPasswordError.hidden = false; }
       return;
     }
-
-    attendanceRecords.forEach((record) => {
-      const item = document.createElement('li');
-      item.className = 'attendance-record';
-      const detail = document.createElement('div');
-      const name = document.createElement('strong');
-      name.textContent = record.name;
-      const meta = document.createElement('small');
-      meta.textContent = record.status === 'yes' ? 'Confirmó asistencia · 1 persona' : 'No podrá asistir';
-      detail.append(name, meta);
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.textContent = '×';
-      remove.setAttribute('aria-label', `Eliminar registro de ${record.name}`);
-      remove.addEventListener('click', () => {
-        attendanceRecords = attendanceRecords.filter((entry) => entry.id !== record.id);
-        saveAttendanceRecords();
-        renderAttendanceRecords();
-        setAttendancePdfReady(false);
-        if (attendanceFeedback) attendanceFeedback.textContent = 'Registro eliminado. Pulsa ACTUALIZAR antes de descargar el PDF.';
-      });
-      item.append(detail, remove);
-      attendanceList.appendChild(item);
-    });
-  }
-
-  if (attendanceForm && attendanceNameInput && attendanceStatusInput) {
-    loadAttendanceRecords();
-    renderAttendanceRecords();
-    setAttendancePdfReady(false);
-    attendanceForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const name = attendanceNameInput.value.trim().replace(/\s+/g, ' ');
-      const status = attendanceStatusInput.value === 'no' ? 'no' : 'yes';
-      if (name.split(' ').length < 2 || name.length < 5) {
-        if (attendanceFeedback) attendanceFeedback.textContent = 'Captura el nombre completo.';
-        attendanceNameInput.focus();
-        return;
+    const password = familyAdminPassword?.value || '';
+    const token = newAdminClientId();
+    const submit = familyPasswordForm.querySelector('button[type="submit"]');
+    if (submit) { submit.disabled = true; submit.textContent = 'VERIFICANDO…'; }
+    try {
+      await adminPost({ action: 'login', password, token });
+      await new Promise(resolve => window.setTimeout(resolve, 500));
+      adminToken = token;
+      await refreshAdminData();
+      // Migra enlaces adicionales creados anteriormente en este navegador al registro central.
+      const legacyLinks = readLegacyFamilyLinks();
+      const knownNames = new Set((adminData.invites || []).map(item => normalizeAdminName(item.name)));
+      const missingLinks = legacyLinks.filter(item => item && item.name && !knownNames.has(normalizeAdminName(item.name)));
+      if (missingLinks.length) {
+        await adminPost({ action: 'importLegacyInvites', token: adminToken, invites: missingLinks });
+        await new Promise(resolve => window.setTimeout(resolve, 350));
+        await refreshAdminData();
       }
-      attendanceRecords.unshift({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
-        name,
-        status,
-        createdAt: new Date().toISOString()
-      });
-      saveAttendanceRecords();
-      renderAttendanceRecords();
-      setAttendancePdfReady(false);
-      if (attendanceFeedback) attendanceFeedback.textContent = 'Respuesta guardada. Pulsa ACTUALIZAR antes de generar el PDF.';
-      attendanceForm.reset();
+      if (familyPasswordError) familyPasswordError.hidden = true;
+      familyPasswordStep.hidden = true; familyGeneratorStep.hidden = false;
+      if (familyAdminPassword) familyAdminPassword.value = '';
+      // Los registros antiguos locales permanecen disponibles para importarlos una sola vez.
+      const legacy = readLegacyAttendance();
+      if (attendanceImportLegacy) attendanceImportLegacy.hidden = !legacy.length;
+      if (familyNameInput) window.setTimeout(() => familyNameInput.focus({ preventScroll: true }), 80);
+    } catch (error) {
+      adminToken = '';
+      if (familyPasswordError) { familyPasswordError.textContent = error.message.includes('not authorized') || error.message.includes('sesión') ? 'La contraseña no es correcta o la sesión no se pudo validar.' : error.message; familyPasswordError.hidden = false; }
+    } finally { if (submit) { submit.disabled = false; submit.textContent = 'ENTRAR'; } }
+  });
+
+  function updateInvitationLinkTypeUI() {
+    const personal = invitationLinkType?.value === 'personal';
+    if (familyNameLabel) familyNameLabel.hidden = personal;
+    if (familyNameInput) { familyNameInput.hidden = personal; familyNameInput.required = !personal; familyNameInput.disabled = personal; if (personal) familyNameInput.value = ''; }
+    if (familyPersonalModeNote) familyPersonalModeNote.hidden = !personal;
+    if (familyGeneratedLinkLabel) familyGeneratedLinkLabel.textContent = personal ? 'Enlace general de pase personal · 1 pase' : 'Enlace de invitación familiar';
+    if (familyPassCountWrap) familyPassCountWrap.hidden = personal;
+    if (familyPassCountInput) { familyPassCountInput.required = !personal; familyPassCountInput.disabled = personal; }
+    const title = familyGeneratorStep?.querySelector('.family-admin-create-title');
+    if (title) title.textContent = personal ? 'Crear pase general para jóvenes' : 'Agregar otra invitación familiar';
+    const button = familyLinkForm?.querySelector('button[type="submit"]');
+    if (button) button.textContent = personal ? 'GENERAR PASE PARA JÓVENES' : 'GENERAR LINK';
+  }
+  invitationLinkType?.addEventListener('change', updateInvitationLinkTypeUI); updateInvitationLinkTypeUI();
+
+  familyLinkForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const type = invitationLinkType?.value === 'personal' ? 'personal' : 'family';
+    const name = type === 'personal' ? 'Pase personal para jóvenes' : String(familyNameInput?.value || '').replace(/[<>]/g, '').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim().slice(0, 70);
+    if (type === 'family' && (!name || name.length < 2)) { familyNameInput?.focus(); return; }
+    const passes = type === 'personal' ? 1 : Number.parseInt(familyPassCountInput?.value || '', 10);
+    if (type === 'family' && (!Number.isInteger(passes) || passes < 1 || passes > 30)) { familyPassCountInput?.focus(); return; }
+    if (!getInvitationBaseUrl()) {
+      if (familyPublicUrlError) { familyPublicUrlError.textContent = 'Configura primero una dirección HTTPS válida de GitHub Pages.'; familyPublicUrlError.hidden = false; }
+      familyPublicUrlInput?.focus(); return;
+    }
+    const id = newAdminClientId();
+    const record = { id, name, type, passes: passes || '' };
+    try {
+      const submit = familyLinkForm.querySelector('button[type="submit"]');
+      if (submit) { submit.disabled = true; submit.textContent = 'GUARDANDO…'; }
+      await adminPost({ action: 'createInvite', token: adminToken, invitation: record });
+      await new Promise(resolve => window.setTimeout(resolve, 450));
+      await refreshAdminData();
+      if (!adminData.invites.some(item => item.id === id)) throw new Error('No se pudo verificar que la invitación se guardara en el registro central.');
+      const personalizedUrl = buildInvitationLink(record);
+      if (!personalizedUrl) throw new Error('No se pudo construir el enlace público.');
+      familyGeneratedLink.value = personalizedUrl; familyLinkResult.hidden = false;
+      if (familyCopyFeedback) familyCopyFeedback.textContent = 'Invitación guardada en el registro central. Ya puedes copiar el enlace.';
+    } catch (error) {
+      if (familyPublicUrlError) { familyPublicUrlError.textContent = error.message; familyPublicUrlError.hidden = false; }
+    } finally {
+      const submit = familyLinkForm.querySelector('button[type="submit"]');
+      if (submit) { submit.disabled = false; submit.textContent = type === 'personal' ? 'GENERAR PASE PARA JÓVENES' : 'GENERAR LINK'; }
+    }
+  });
+
+  familyCopyLink?.addEventListener('click', async () => {
+    if (!familyGeneratedLink) return;
+    const copied = await copyTextValue(familyGeneratedLink.value);
+    if (familyCopyFeedback) familyCopyFeedback.textContent = copied ? '¡Enlace copiado! Ya puedes pegarlo en WhatsApp.' : 'Selecciona el enlace para copiarlo.';
+    if (!copied) { familyGeneratedLink.focus(); familyGeneratedLink.select(); }
+  });
+  familyNewLink?.addEventListener('click', () => {
+    if (familyNameInput) { familyNameInput.value = ''; if (!familyNameInput.hidden) familyNameInput.focus(); }
+    if (familyPassCountInput) familyPassCountInput.value = '';
+    if (familyLinkResult) familyLinkResult.hidden = true;
+    if (familyCopyFeedback) familyCopyFeedback.textContent = '';
+  });
+
+  function readLegacyAttendance() {
+    try {
+      const rows = JSON.parse(localStorage.getItem(ATTENDANCE_STORAGE_KEY) || '[]');
+      return Array.isArray(rows) ? rows.filter(row => row && typeof row.name === 'string') : [];
+    } catch (_) { return []; }
+  }
+
+  function readLegacyFamilyLinks() {
+    try {
+      const rows = JSON.parse(localStorage.getItem(EXTRA_FAMILY_LINKS_STORAGE_KEY) || '[]');
+      return Array.isArray(rows) ? rows.filter(row => row && typeof row.name === 'string') : [];
+    } catch (_) { return []; }
+  }
+  function normalizeAdminName(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  if (attendanceForm) {
+    attendanceForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const name = String(attendanceNameInput?.value || '').trim().replace(/\s+/g, ' ');
+      const status = attendanceStatusInput?.value === 'no' ? 'no' : 'yes';
+      const attendees = status === 'yes' ? Math.max(1, Math.min(30, Number.parseInt(attendanceAttendeesInput?.value || '1', 10) || 1)) : 0;
+      if (name.split(' ').length < 2 || name.length < 5) { setAdminFeedback('Captura el nombre completo.', true); attendanceNameInput?.focus(); return; }
+      try {
+        const responseId = newAdminClientId();
+        await adminPost({ action: 'manualAdd', token: adminToken, responseId, name, status, attendees });
+        await new Promise(resolve => window.setTimeout(resolve, 350));
+        await refreshAdminData();
+        if (!attendanceRecords.some(item => item.responseId === responseId)) throw new Error('No se pudo verificar que la respuesta se guardara.');
+        setAdminFeedback('Respuesta guardada en el registro central.');
+        attendanceForm.reset(); setAttendancePdfReady(false);
+      } catch (error) { setAdminFeedback(error.message, true); }
     });
   }
 
-  // Actualiza la vista desde el almacenamiento local antes de crear el reporte.
-  attendanceRefresh?.addEventListener('click', () => {
-    loadAttendanceRecords();
-    renderAttendanceRecords();
-    setAttendancePdfReady(true);
-    const stamp = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
-    if (attendanceFeedback) attendanceFeedback.textContent = `Lista actualizada (${attendanceRecords.length} registros) · ${stamp}. Ya puedes descargar el PDF.`;
+  attendanceRefresh?.addEventListener('click', async () => {
+    try {
+      await refreshAdminData();
+      const stamp = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+      setAdminFeedback(`Lista actualizada (${attendanceRecords.length} registros) · ${stamp}. Ya puedes descargar el PDF.`);
+    } catch (error) { setAdminFeedback(error.message, true); }
   });
+
+  whatsappSettingsForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const whatsapp = String(whatsappNumberInput?.value || '').replace(/\D/g, '');
+    const message = String(whatsappMessageInput?.value || '').trim();
+    if (whatsapp.length < 10 || whatsapp.length > 15) { if (whatsappSettingsFeedback) whatsappSettingsFeedback.textContent = 'Escribe el número internacional, incluyendo código de país.'; return; }
+    try {
+      await adminPost({ action: 'updateSettings', token: adminToken, whatsapp, message });
+      await new Promise(resolve => window.setTimeout(resolve, 350));
+      await refreshAdminData();
+      if (String(adminData.settings?.whatsapp || '') !== whatsapp) throw new Error('No se pudo verificar el número guardado.');
+      if (whatsappSettingsFeedback) whatsappSettingsFeedback.textContent = 'Configuración de WhatsApp guardada.';
+    } catch (error) { if (whatsappSettingsFeedback) whatsappSettingsFeedback.textContent = error.message; }
+  });
+
+  attendanceImportLegacy?.addEventListener('click', async () => {
+    const legacy = readLegacyAttendance();
+    if (!legacy.length) { attendanceImportLegacy.hidden = true; return; }
+    if (!window.confirm(`Se encontraron ${legacy.length} registros guardados en este navegador. ¿Importarlos al registro central?`)) return;
+    try {
+      await adminPost({ action: 'importLegacy', token: adminToken, records: legacy.map(row => ({
+        responseId: String(row.id || newAdminClientId()), name: row.name,
+        status: row.status === 'no' ? 'no' : 'yes', attendees: row.status === 'no' ? 0 : Number(row.attendees) || 1,
+        createdAt: row.createdAt || new Date().toISOString()
+      })) });
+      await new Promise(resolve => window.setTimeout(resolve, 500));
+      await refreshAdminData();
+      if (attendanceImportLegacy) attendanceImportLegacy.hidden = true;
+      setAdminFeedback('Los registros anteriores se importaron al sistema central. El respaldo local se conservó.');
+    } catch (error) { setAdminFeedback(error.message, true); }
+  });
+
+  attendanceClear?.addEventListener('click', async () => {
+    if (!attendanceRecords.length) return;
+    if (!window.confirm('¿Deseas borrar TODAS las respuestas guardadas en el registro central? Esta acción no se puede deshacer.')) return;
+    try {
+      await adminPost({ action: 'clearResponses', token: adminToken });
+      await new Promise(resolve => window.setTimeout(resolve, 400));
+      await refreshAdminData();
+      if (attendanceRecords.length) throw new Error('El servicio no confirmó el borrado. No se modificó la lista que ves.');
+      setAdminFeedback('Se borraron las respuestas del registro central.'); setAttendancePdfReady(false);
+    } catch (error) { setAdminFeedback(error.message, true); }
+  });
+
+  if (attendanceAdminStatus) attendanceAdminStatus.addEventListener('change', () => {
+    if (attendanceAttendeesInput) attendanceAttendeesInput.disabled = attendanceAdminStatus.value === 'no';
+  });
+  if (attendanceImportLegacy) attendanceImportLegacy.hidden = true;
 
   // PDF autónomo: se crea en el navegador, sin librerías externas ni conexión a servicios.
   // Los textos se codifican en WinAnsi y se dibujan con las fuentes estándar de PDF.
@@ -1499,7 +1633,7 @@
         const startX = 42;
         const cards = [
           { label: 'RESPUESTAS', value: records.length },
-          { label: 'ASISTIRÁN', value: yesRecords.length },
+          { label: 'ASISTIRÁN', value: yesRecords.reduce((sum, record) => sum + (Number(record.attendees) || 1), 0) },
           { label: 'NO ASISTIRÁN', value: noRecords.length }
         ];
         cards.forEach((card, idx) => {
@@ -1521,8 +1655,9 @@
       stream += rect(tableX, tableTop - headerRowH, tableW, headerRowH, [0.10, 0.17, 0.29]);
       stream += text('Nº', 50, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
       stream += text('NOMBRE COMPLETO', 82, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
-      stream += text('RESPUESTA', 365, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
-      stream += text('FECHA', 465, tableTop - 17, 8, [0.98, 0.93, 0.84], 'F2');
+      stream += text('ASISTENTES', 350, tableTop - 17, 7, [0.98, 0.93, 0.84], 'F2');
+      stream += text('RESPUESTA', 420, tableTop - 17, 7, [0.98, 0.93, 0.84], 'F2');
+      stream += text('FECHA', 495, tableTop - 17, 7, [0.98, 0.93, 0.84], 'F2');
 
       const start = pageIndex * rowsPerPage;
       const pageRows = records.slice(start, start + rowsPerPage);
@@ -1539,8 +1674,9 @@
           stream += text(String(start + localIndex + 1), 50, rowY + 8, 8, [0.42, 0.35, 0.26], 'F1');
           stream += text(truncate(record.name, 48), 82, rowY + 8, 8.4, [0.10, 0.16, 0.27], 'F1');
           const isYes = record.status === 'yes';
-          stream += text(isYes ? 'ASISTIRÁ' : 'NO ASISTIRÁ', 365, rowY + 8, 7.4, isYes ? [0.12, 0.42, 0.29] : [0.62, 0.25, 0.27], 'F2');
-          stream += text(formatWhen(record.createdAt), 465, rowY + 8, 7.0, [0.42, 0.38, 0.33], 'F1');
+          stream += text(isYes ? String(Number(record.attendees) || 1) : '0', 365, rowY + 8, 8, [0.10, 0.16, 0.27], 'F2');
+          stream += text(isYes ? 'ASISTIRÁ' : 'NO ASISTIRÁ', 420, rowY + 8, 6.8, isYes ? [0.12, 0.42, 0.29] : [0.62, 0.25, 0.27], 'F2');
+          stream += text(formatWhen(record.createdAt), 495, rowY + 8, 6.5, [0.42, 0.38, 0.33], 'F1');
         });
       }
 
@@ -1592,13 +1728,4 @@
     if (attendanceFeedback) attendanceFeedback.textContent = 'Reporte PDF generado con la información actualizada.';
   });
 
-  attendanceClear?.addEventListener('click', () => {
-    if (!attendanceRecords.length) return;
-    if (!window.confirm('¿Deseas borrar todos los registros de asistencia guardados en este navegador?')) return;
-    attendanceRecords = [];
-    saveAttendanceRecords();
-    renderAttendanceRecords();
-    setAttendancePdfReady(false);
-    if (attendanceFeedback) attendanceFeedback.textContent = 'Se borraron los registros locales. Pulsa ACTUALIZAR antes de descargar el PDF.';
-  });
 })();
